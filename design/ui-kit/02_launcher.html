@@ -1,0 +1,142 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><link rel="stylesheet" href="kit.css"><style>
+.tile{border-radius:22px;background:rgba(30,34,32,.55);backdrop-filter:blur(20px);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:12px;position:relative;aspect-ratio:1}
+.tile .ib{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(168,197,160,.14);color:var(--sage)}
+.tile.soon{opacity:.72;border-style:dashed}.tile.soon .ib{background:rgba(255,255,255,.06);color:var(--mute)}
+.tile .bd{position:absolute;top:7px;right:7px;font-size:9px;padding:2px 6px;border-radius:9px;background:rgba(255,255,255,.1);color:var(--mute);letter-spacing:.5px}
+.tile .dot{position:absolute;top:9px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--ember2);box-shadow:0 0 8px var(--ember2)}
+.mg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.dock{position:absolute;left:14px;right:14px;bottom:18px;height:74px;border-radius:30px;display:flex;justify-content:space-around;align-items:center}
+.dock span{width:52px;height:52px;border-radius:18px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.dock span.on{background:var(--sage);color:#18221b}
+.wg{border-radius:24px;padding:14px}
+.big .tile{width:118px}
+.cover{border-radius:14px;background:url(assets/cover1.jpg) center/cover;flex:none}
+.eq{display:flex;gap:3px;align-items:flex-end;height:16px}.eq i{width:3px;border-radius:2px;background:var(--sage);display:block}
+</style></head><body><div class="bg" style="background-image:url(assets/bg_sea.jpg)"></div>
+<div class="board">
+<div class="top"><h1><small>Главный экран · лаунчер</small>САНЯ · UI 02/06</h1><div class="pg"><b>02</b> / 06</div></div>
+
+<div class="row" style="align-items:flex-start;gap:36px">
+ <!-- PHONE A -->
+ <div class="col" style="align-items:center"><div class="phone" style="background-image:url(assets/bg_sea.jpg)"><div class="shade"></div><div class="island"></div><div class="sb"><span>23:48</span><span style="font-size:12px">5G ▮▮▮ 82%</span></div>
+  <div class="scr">
+   <div style="padding:8px 4px 0"><div class="lbl" style="font-size:11px">Вторник · 17 ноября</div><div class="disp" style="font-size:38px;line-height:1.05;margin-top:4px">Доброй ночи,<br>Егор</div></div>
+   <div class="inp" style="height:46px;background:rgba(20,24,22,.55);backdrop-filter:blur(20px)"><i data-i="search" data-s="18"></i><span style="font-size:14px">Модуль, трек, команда…</span><i data-i="mic" data-s="18" style="margin-left:auto;color:var(--sage)"></i></div>
+   <div class="row" style="gap:10px">
+    <div class="glass wg" style="flex:1;border-radius:22px;padding:12px 14px"><div class="lbl" style="font-size:10px;color:var(--sage)">Смена</div><div class="disp" style="font-size:24px;margin-top:2px">Ср 17:00</div><div class="mute" style="font-size:11px">через 17 ч · 6 ч</div></div>
+    <div class="glass wg row" style="flex:1.25;border-radius:22px;padding:10px;gap:10px"><div class="cover" style="width:48px;height:48px"></div><div style="min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap">Dragonborn</div><div class="mute" style="font-size:11px">Jeremy Soule</div><div class="eq" style="margin-top:5px"><i style="height:8px"></i><i style="height:14px"></i><i style="height:6px"></i><i style="height:12px"></i></div></div></div>
+   </div>
+   <div class="row" style="justify-content:space-between;padding:4px 4px 0"><span class="lbl" style="font-size:11px">Модули</span><span class="sage" style="font-size:12px">Изменить</span></div>
+   <div class="mg">
+    <div class="tile"><div class="ib"><i data-i="chat" data-s="22"></i></div>Чат</div>
+    <div class="tile"><div class="ib"><i data-i="play" data-s="22"></i></div>Плеер</div>
+    <div class="tile"><div class="dot"></div><div class="ib"><i data-i="shift" data-s="22"></i></div>Смены</div>
+    <div class="tile"><div class="ib"><i data-i="timer" data-s="22"></i></div>Таймеры</div>
+    <div class="tile"><div class="ib"><i data-i="vex" data-s="22"></i></div>Векс</div>
+    <div class="tile"><div class="ib"><i data-i="counter" data-s="22"></i></div>Счётчик</div>
+    <div class="tile"><div class="ib"><i data-i="safe" data-s="22"></i></div>Сейф</div>
+    <div class="tile"><div class="ib"><i data-i="scen" data-s="22"></i></div>Сценарии</div>
+    <div class="tile soon"><div class="bd">скоро</div><div class="ib"><i data-i="book" data-s="22"></i></div>Книга</div>
+    <div class="tile soon"><div class="bd">скоро</div><div class="ib"><i data-i="lyrics" data-s="22"></i></div>Караоке</div>
+    <div class="tile soon"><div class="bd">скоро</div><div class="ib"><i data-i="leaf" data-s="22"></i></div>Питомец</div>
+    <div class="tile soon"><div class="bd">скоро</div><div class="ib"><i data-i="plus" data-s="22"></i></div>Ещё</div>
+   </div>
+  </div>
+  <div class="dock glass"><span class="on"><i data-i="home"></i></span><span><i data-i="music"></i></span><span><i data-i="chat"></i></span><span><i data-i="cal"></i></span><span><i data-i="gear"></i></span></div>
+ </div><div class="cap">Главный · тема «Море»</div></div>
+
+ <!-- PHONE B ember -->
+ <div class="col" style="align-items:center"><div class="phone" style="background-image:url(assets/bg_ember.jpg)"><div class="shade" style="background:linear-gradient(180deg,rgba(10,12,11,.2),rgba(10,12,11,.55) 60%,rgba(20,8,4,.5))"></div><div class="island"></div><div class="sb"><span>06:12</span><span style="font-size:12px">5G ▮▮▮ 64%</span></div>
+  <div class="scr" style="padding-top:70px">
+   <div style="text-align:center"><div class="lbl" style="font-size:11px;color:var(--ember2)">Рассвет · Cocentaina 9°</div><div class="disp" style="font-size:96px;line-height:1;font-weight:400;margin-top:6px;color:#f4d2a8;text-shadow:0 0 40px rgba(232,137,74,.5)">06:12</div><div class="disp" style="font-size:22px;font-style:italic;color:var(--ink)">Доброе утро, Егор</div></div>
+   <div class="glass" style="padding:16px 18px;margin-top:10px;border-radius:26px">
+    <div class="row" style="justify-content:space-between"><span class="lbl" style="font-size:10px;color:var(--ember2)">Сегодня</span><i data-i="chev" data-s="16" class="mute"></i></div>
+    <div class="row" style="gap:12px;margin-top:10px"><i data-i="shift" data-s="20" class="sage"></i><div style="flex:1;font-size:14px">Смена 08:00–14:00</div><span class="chip warn" style="height:26px;font-size:11px;padding:0 10px">выход 07:15</span></div>
+    <div class="row" style="gap:12px;margin-top:10px"><i data-i="timer" data-s="20" class="sage"></i><div style="flex:1;font-size:14px">Будильник 06:40</div><span class="tog on" style="transform:scale(.8)"></span></div>
+    <div class="row" style="gap:12px;margin-top:10px"><i data-i="vex" data-s="20" class="sage"></i><div style="flex:1;font-size:14px">Векс онлайн</div><span style="width:8px;height:8px;border-radius:50%;background:var(--sage);box-shadow:0 0 8px var(--sage)"></span></div>
+   </div>
+   <div class="row" style="gap:10px">
+    <div class="glass" style="flex:1;border-radius:22px;padding:12px 14px"><i data-i="can" data-s="20" class="ember"></i><div class="disp" style="font-size:28px;margin-top:4px">1<span class="mute" style="font-size:16px"> / 3</span></div><div class="mute" style="font-size:11px">энергетик</div></div>
+    <div class="glass" style="flex:1;border-radius:22px;padding:12px 14px"><i data-i="leaf" data-s="20" class="sage"></i><div class="disp" style="font-size:28px;margin-top:4px">2<span class="mute" style="font-size:16px"> дня</span></div><div class="mute" style="font-size:11px">без снюса</div></div>
+    <div class="glass" style="flex:1;border-radius:22px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between"><i data-i="scen" data-s="20" class="sage"></i><div style="font-size:12px;line-height:1.25">Утренний<br>сценарий</div></div>
+   </div>
+  </div>
+  <div class="dock glass" style="background:rgba(20,14,10,.5)"><span><i data-i="home"></i></span><span><i data-i="music"></i></span><span class="on" style="background:var(--ember);color:#1b0f08"><i data-i="chat"></i></span><span><i data-i="cal"></i></span><span><i data-i="gear"></i></span></div>
+ </div><div class="cap">Утро · тема «Угли» с крупными часами</div></div>
+
+ <!-- RIGHT -->
+ <div class="col" style="flex:1;gap:22px">
+  <div class="sec">Плитки модулей</div>
+  <div class="row big" style="gap:14px;flex-wrap:wrap">
+   <div class="col" style="align-items:center;gap:0"><div class="tile"><div class="ib"><i data-i="play" data-s="22"></i></div>Плеер</div><div class="cap">Готов</div></div>
+   <div class="col" style="align-items:center;gap:0"><div class="tile" style="border-color:var(--sage);box-shadow:0 0 0 4px rgba(168,197,160,.15)"><div class="ib" style="background:var(--sage);color:#18221b"><i data-i="play" data-s="22"></i></div>Плеер</div><div class="cap">Нажата</div></div>
+   <div class="col" style="align-items:center;gap:0"><div class="tile"><div class="dot"></div><div class="ib"><i data-i="shift" data-s="22"></i></div>Смены</div><div class="cap">С событием</div></div>
+   <div class="col" style="align-items:center;gap:0"><div class="tile soon"><div class="bd">скоро</div><div class="ib"><i data-i="book" data-s="22"></i></div>Книга</div><div class="cap">Скоро</div></div>
+  </div>
+  <div class="glass row" style="padding:14px;gap:14px;border-radius:24px"><div class="tile" style="width:64px;aspect-ratio:1;border-radius:18px"><div class="ib" style="width:36px;height:36px"><i data-i="safe" data-s="20"></i></div></div><div style="flex:1"><b>Сейф</b><div class="mute" style="font-size:13px">Плитка-список · Face ID</div></div><span class="tog on"></span></div>
+
+  <div class="sec" style="margin-top:6px">Приветствие</div>
+  <div class="glass" style="padding:22px 26px"><div class="lbl" style="color:var(--sage)">Вторник · 17 ноября</div><div class="disp" style="font-size:44px;line-height:1.05;margin-top:6px">Доброй ночи, Егор</div><div class="mute" style="margin-top:8px;font-size:14px">Завтра смена в 17:00. Векс на связи, все системы в норме.</div></div>
+
+  <div class="sec" style="margin-top:6px">Поиск</div>
+  <div class="inp focus" style="background:rgba(20,24,22,.6)"><i data-i="search" data-s="20" class="sage"></i>плей<span style="width:2px;height:20px;background:var(--sage)"></span><span class="chip" style="margin-left:auto;height:28px;font-size:12px">⌘ Модули</span></div>
+  <div class="glass" style="padding:8px;border-radius:24px">
+   <div class="row" style="padding:10px 12px;gap:14px;border-radius:16px;background:rgba(255,255,255,.06)"><i data-i="play" class="sage"></i><div style="flex:1"><b style="font-size:14px">Плеер</b><div class="mute" style="font-size:12px">модуль</div></div><i data-i="chev" data-s="18" class="mute"></i></div>
+   <div class="row" style="padding:10px 12px;gap:14px"><i data-i="scen" class="sage"></i><div style="flex:1"><b style="font-size:14px">Плейлист одной кнопкой</b><div class="mute" style="font-size:12px">сценарий</div></div><i data-i="chev" data-s="18" class="mute"></i></div>
+   <div class="row" style="padding:10px 12px;gap:14px"><i data-i="music" class="sage"></i><div style="flex:1"><b style="font-size:14px">Плейлист «Ночная смена»</b><div class="mute" style="font-size:12px">24 трека</div></div><i data-i="chev" data-s="18" class="mute"></i></div>
+  </div>
+ </div>
+</div>
+
+<div class="row" style="align-items:flex-start;gap:24px;margin-top:44px">
+ <div style="flex:1"><div class="sec">Виджеты</div>
+  <div class="row" style="gap:20px;align-items:stretch">
+   <div class="glass" style="width:340px;padding:22px 24px">
+    <div class="row" style="justify-content:space-between"><span class="lbl" style="color:var(--sage)">Следующая смена</span><i data-i="shift" data-s="20" class="sage"></i></div>
+    <div class="disp" style="font-size:44px;margin-top:10px;line-height:1">Среда</div><div style="font-size:22px;font-weight:600;margin-top:6px">17:00 – 23:00</div>
+    <div class="mute" style="font-size:13px;margin-top:6px">McDonald's Alcoy · касса</div>
+    <div style="height:6px;border-radius:9px;background:rgba(255,255,255,.1);margin-top:16px"><div style="width:35%;height:100%;border-radius:9px;background:var(--sage)"></div></div>
+    <div class="row" style="justify-content:space-between;margin-top:8px;font-size:12px" class="mute"><span class="mute">через 17 ч 12 мин</span><span class="ember">выйти в 16:15</span></div>
+   </div>
+   <div class="glass" style="width:440px;padding:18px;display:flex;gap:18px">
+    <div class="cover" style="width:150px;height:150px;border-radius:20px"></div>
+    <div style="flex:1;display:flex;flex-direction:column"><div class="row" style="justify-content:space-between"><span class="lbl" style="color:var(--sage)">Сейчас играет</span><div class="eq"><i style="height:8px"></i><i style="height:16px"></i><i style="height:10px"></i><i style="height:13px"></i></div></div>
+     <div class="disp" style="font-size:28px;margin-top:8px;line-height:1.05">Dragonborn</div><div class="mute" style="font-size:13px">Jeremy Soule · Skyrim OST</div>
+     <div style="height:4px;border-radius:9px;background:rgba(255,255,255,.12);margin-top:auto"><div style="width:42%;height:100%;border-radius:9px;background:var(--ink)"></div></div>
+     <div class="row" style="justify-content:space-between;margin-top:12px"><i data-i="prev" data-s="22"></i><span class="btn b-pri b-ico" style="width:46px;height:46px"><i data-i="pause" data-s="20"></i></span><i data-i="next" data-s="22"></i><i data-i="lyrics" data-s="22" class="sage"></i></div></div>
+   </div>
+   <div class="col" style="gap:20px">
+    <div class="glass" style="width:170px;height:170px;padding:18px;display:flex;flex-direction:column;justify-content:space-between"><i data-i="fire" data-s="26" class="ember"></i><div><div class="disp" style="font-size:40px;line-height:1">12</div><div class="mute" style="font-size:12px">дней серия</div></div></div>
+   </div>
+   <div class="glass" style="width:170px;height:170px;padding:18px;display:flex;flex-direction:column;justify-content:space-between"><div class="row" style="justify-content:space-between"><i data-i="vex" data-s="26" class="sage"></i><span style="width:9px;height:9px;border-radius:50%;background:var(--sage);box-shadow:0 0 10px var(--sage)"></span></div><div><div style="font-size:18px;font-weight:600">Векс</div><div class="mute" style="font-size:12px">пульс 12 с назад</div></div></div>
+  </div></div>
+</div>
+<div class="sec" style="margin-top:36px">Док</div>
+<div class="row" style="gap:28px">
+ <div class="glass row" style="padding:10px;border-radius:32px;gap:10px"><span class="btn b-pri b-ico" style="width:56px;height:56px;border-radius:20px"><i data-i="home"></i></span><span class="btn b-gho b-ico" style="width:56px;height:56px"><i data-i="music"></i></span><span class="btn b-gho b-ico" style="width:56px;height:56px"><i data-i="chat"></i></span><span class="btn b-gho b-ico" style="width:56px;height:56px"><i data-i="cal"></i></span><span class="btn b-gho b-ico" style="width:56px;height:56px"><i data-i="gear"></i></span></div>
+ <div class="glass row" style="padding:10px 10px 10px 22px;border-radius:32px;gap:14px"><i data-i="mic" class="sage"></i><span class="mute">Спроси Саню…</span><span class="btn b-pri" style="height:48px;margin-left:30px"><i data-i="send" data-s="18"></i>Отправить</span></div>
+ <span class="cap">Док: вкладки · или строка-команда</span>
+</div>
+
+<div class="row" style="align-items:flex-start;gap:40px;margin-top:40px">
+ <div style="flex:1"><div class="sec">Темы фона</div>
+  <div class="row" style="gap:18px">
+   <div class="col" style="gap:8px;align-items:center"><div style="width:150px;height:200px;border-radius:26px;background:url(assets/bg_sea.jpg) center/cover;border:2px solid var(--sage);box-shadow:0 0 0 5px rgba(168,197,160,.15)"></div><span style="font-size:13px">Море <span class="sage">✓</span></span></div>
+   <div class="col" style="gap:8px;align-items:center"><div style="width:150px;height:200px;border-radius:26px;background:url(assets/bg_forest.jpg) center/cover;border:1px solid var(--line)"></div><span style="font-size:13px" class="mute">Туманный лес</span></div>
+   <div class="col" style="gap:8px;align-items:center"><div style="width:150px;height:200px;border-radius:26px;background:url(assets/bg_ember.jpg) center/cover;border:1px solid var(--line)"></div><span style="font-size:13px" class="mute">Угли</span></div>
+   <div class="col" style="gap:8px;align-items:center"><div style="width:150px;height:200px;border-radius:26px;border:1.5px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--mute)"><i data-i="img" data-s="30"></i></div><span style="font-size:13px" class="mute">Своё фото</span></div>
+  </div></div>
+ <div style="width:560px"><div class="sec">Режим правки</div>
+  <div class="glass" style="padding:22px">
+   <div class="row" style="gap:14px">
+    <div class="tile" style="width:96px;transform:rotate(-3deg)"><span style="position:absolute;top:-8px;left:-8px;width:24px;height:24px;border-radius:50%;background:var(--danger);display:flex;align-items:center;justify-content:center;color:#fff"><i data-i="minus" data-s="14" style="stroke-width:2.5"></i></span><div class="ib"><i data-i="chat" data-s="22"></i></div>Чат</div>
+    <div class="tile" style="width:96px;transform:rotate(2deg)"><span style="position:absolute;top:-8px;left:-8px;width:24px;height:24px;border-radius:50%;background:var(--danger);display:flex;align-items:center;justify-content:center;color:#fff"><i data-i="minus" data-s="14" style="stroke-width:2.5"></i></span><div class="ib"><i data-i="timer" data-s="22"></i></div>Таймеры</div>
+    <div class="tile" style="width:96px;transform:translateY(-10px) scale(1.06);box-shadow:0 20px 40px rgba(0,0,0,.5);border-color:var(--sage)"><div class="ib"><i data-i="vex" data-s="22"></i></div>Векс</div>
+    <div class="tile" style="width:96px;border:1.5px dashed var(--sage);background:rgba(168,197,160,.06)"><div class="ib"><i data-i="plus" data-s="22"></i></div>Добавить</div>
+   </div>
+   <div class="row" style="justify-content:space-between;margin-top:20px"><span class="mute" style="font-size:13px">Перетащи плитку, чтобы поменять порядок</span><span class="btn b-pri" style="height:42px">Готово</span></div>
+  </div></div>
+</div>
+</div>
+<div class="foot"><span>SANYA · DESIGN KIT v0.1</span><span>iPhone 15 · 393 × 852 pt</span></div>
+<script src="icons.js"></script></body></html>

@@ -1,0 +1,111 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><link rel="stylesheet" href="kit.css"><style>
+.wk{display:flex;gap:6px}.wk div{flex:1;border-radius:16px;padding:8px 0;text-align:center;font-size:11px;color:var(--mute);border:1px solid transparent}
+.wk b{display:block;font-size:17px;color:var(--ink);margin-top:3px;font-weight:600}.wk i{display:block;width:5px;height:5px;border-radius:50%;margin:5px auto 0;background:var(--sage)}
+.wk .on{background:var(--sage);color:#18221b}.wk .on b{color:#18221b}.wk .on i{background:#18221b}
+.mgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.mh{font-size:11px;color:var(--dim);text-align:center;letter-spacing:1px}
+.mc{height:74px;border-radius:16px;padding:8px 9px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03)}
+.mc b{font-size:15px;font-weight:600}.mc span{font-size:10px;letter-spacing:.3px}
+.mc.empty{background:none;border:none}
+.mc.m{background:rgba(168,197,160,.16);border-color:rgba(168,197,160,.35)}.mc.m span{color:var(--sage)}
+.mc.e{background:rgba(232,137,74,.13);border-color:rgba(232,137,74,.35)}.mc.e span{color:var(--ember2)}
+.mc.n{background:rgba(120,130,200,.14);border-color:rgba(140,150,220,.35)}.mc.n span{color:#b5bdf0}
+.mc.t{background:var(--sage);color:#18221b;box-shadow:0 0 24px rgba(168,197,160,.4)}.mc.t span{color:#18221b;font-weight:600}
+.mc.v{background:repeating-linear-gradient(135deg,rgba(255,255,255,.05) 0 6px,transparent 6px 12px);border-style:dashed}.mc.v span{color:var(--mute)}
+.mc.x{border-color:rgba(217,103,91,.6)}.mc.x span{color:#f0a097}.mc.off b{color:var(--dim)}
+.ring{position:relative;display:flex;align-items:center;justify-content:center}
+.ring svg:not(.i){position:absolute;inset:0;transform:rotate(-90deg)}
+.leg{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mute)}.leg s{width:14px;height:14px;border-radius:5px;display:inline-block}
+.bar{flex:1;border-radius:10px 10px 4px 4px;background:rgba(255,255,255,.1)}
+</style></head><body><div class="bg" style="background-image:url(assets/bg_forest.jpg)"></div>
+<div class="board">
+<div class="top"><h1><small>Трекер смен · таймеры · напоминания</small>САНЯ · UI 04/06</h1><div class="pg"><b>04</b> / 06</div></div>
+<div class="row" style="align-items:flex-start;gap:36px">
+ <!-- shifts phone -->
+ <div class="col" style="align-items:center"><div class="phone" style="background-image:url(assets/bg_forest.jpg)"><div class="shade" style="background:rgba(10,12,11,.6)"></div><div class="island"></div><div class="sb"><span>12:30</span><span style="font-size:12px">5G ▮▮▮ 90%</span></div>
+  <div class="scr">
+   <div class="row" style="justify-content:space-between;padding:6px 4px 0"><div><div class="lbl" style="font-size:11px;color:var(--sage)">Неделя 47</div><div class="disp" style="font-size:36px;line-height:1.05">Смены</div></div><span class="btn b-sec b-ico" style="width:44px;height:44px"><i data-i="img" data-s="20"></i></span></div>
+   <div class="wk glass" style="padding:8px;border-radius:24px"><div>Пн<b>16</b><i></i></div><div class="on">Вт<b>17</b><i></i></div><div>Ср<b>18</b><i style="background:var(--ember2)"></i></div><div>Чт<b>19</b><i style="opacity:0"></i></div><div>Пт<b>20</b><i style="background:var(--ember2)"></i></div><div>Сб<b>21</b><i style="background:#b5bdf0"></i></div><div>Вс<b>22</b><i style="opacity:0"></i></div></div>
+   <div class="glass" style="padding:18px;border-radius:26px;border-color:rgba(168,197,160,.4)">
+    <div class="row" style="justify-content:space-between"><span class="chip on" style="height:26px;font-size:11px;padding:0 10px">● идёт сейчас</span><span class="mute" style="font-size:12px">касса · зал</span></div>
+    <div class="disp" style="font-size:40px;margin-top:8px;line-height:1">08:00 – 14:00</div>
+    <div class="mute" style="font-size:13px;margin-top:4px">McDonald's Alcoy · перерыв 11:30</div>
+    <div style="height:6px;border-radius:9px;background:rgba(255,255,255,.1);margin-top:14px"><div style="width:75%;height:100%;border-radius:9px;background:var(--sage)"></div></div>
+    <div class="row" style="justify-content:space-between;margin-top:8px;font-size:12px"><span class="mute">4 ч 30 мин из 6 ч</span><span class="sage">до конца 1:30</span></div>
+   </div>
+   <div class="lbl" style="font-size:11px;padding:4px 4px 0">Дальше</div>
+   <div class="glass2 row" style="padding:12px 14px;gap:12px;border-radius:20px"><div style="width:4px;height:38px;border-radius:4px;background:var(--ember)"></div><div style="flex:1"><b style="font-size:14px">Ср, 18 ноября</b><div class="mute" style="font-size:12px">17:00 – 23:00 · 6 ч</div></div><i data-i="bell" data-s="18" class="ember"></i></div>
+   <div class="glass2 row" style="padding:12px 14px;gap:12px;border-radius:20px"><div style="width:4px;height:38px;border-radius:4px;background:var(--ember)"></div><div style="flex:1"><b style="font-size:14px">Пт, 20 ноября</b><div class="mute" style="font-size:12px">17:00 – 23:00 · 6 ч</div></div><i data-i="bell" data-s="18" class="mute"></i></div>
+   <div class="glass2 row" style="padding:12px 14px;gap:12px;border-radius:20px"><div style="width:4px;height:38px;border-radius:4px;background:#b5bdf0"></div><div style="flex:1"><b style="font-size:14px">Сб, 21 ноября</b><div class="mute" style="font-size:12px">22:00 – 04:00 · ночь</div></div><i data-i="bell" data-s="18" class="mute"></i></div>
+   <span class="btn b-pri" style="margin-top:auto;height:50px"><i data-i="img" data-s="18"></i>Загрузить скрин Orquest</span>
+  </div></div><div class="cap">Смены · неделя + текущая смена</div></div>
+
+ <!-- timers phone -->
+ <div class="col" style="align-items:center"><div class="phone" style="background-image:url(assets/bg_ember.jpg);background-position:center 80%"><div class="shade" style="background:linear-gradient(180deg,rgba(10,12,11,.8),rgba(10,12,11,.55))"></div><div class="island"></div><div class="sb"><span>16:02</span><span style="font-size:12px">5G ▮▮▮ 54%</span></div>
+  <div class="scr">
+   <div style="padding:6px 4px 0"><div class="lbl" style="font-size:11px;color:var(--ember2)">Таймеры</div><div class="disp" style="font-size:36px;line-height:1.05">Выход на смену</div></div>
+   <div class="ring" style="width:280px;height:280px;margin:8px auto 0">
+    <svg width="280" height="280"><circle cx="140" cy="140" r="122" stroke="rgba(255,255,255,.1)" stroke-width="14" fill="none"/><circle cx="140" cy="140" r="122" stroke="url(#g)" stroke-width="14" fill="none" stroke-linecap="round" stroke-dasharray="766" stroke-dashoffset="250"/><defs><linearGradient id="g"><stop offset="0" stop-color="#f2b25c"/><stop offset="1" stop-color="#e8894a"/></linearGradient></defs></svg>
+    <div style="text-align:center"><div class="disp" style="font-size:72px;line-height:1;color:#f4d2a8">13:20</div><div class="mute" style="font-size:13px;margin-top:4px">до выхода · в 16:15</div></div>
+   </div>
+   <div class="row" style="justify-content:center;gap:18px"><span class="btn b-sec b-ico" style="width:56px;height:56px"><i data-i="restart"></i></span><span class="btn b-emb" style="width:150px;height:56px"><i data-i="pause" data-s="20"></i>Пауза</span><span class="btn b-sec b-ico" style="width:56px;height:56px"><i data-i="plus"></i></span></div>
+   <div class="row" style="gap:10px;margin-top:6px">
+    <div class="glass2" style="flex:1;padding:12px 14px"><div class="row" style="justify-content:space-between"><i data-i="timer" data-s="18" class="sage"></i><span class="tog on" style="transform:scale(.7);margin:-6px -10px"></span></div><div style="font-size:22px;font-weight:600;margin-top:6px">06:40</div><div class="mute" style="font-size:11px">Будильник · будни</div></div>
+    <div class="glass2" style="flex:1;padding:12px 14px"><div class="row" style="justify-content:space-between"><i data-i="moon" data-s="18" class="mute"></i><span class="tog" style="transform:scale(.7);margin:-6px -10px"></span></div><div style="font-size:22px;font-weight:600;margin-top:6px">23:30</div><div class="mute" style="font-size:11px">Отбой</div></div>
+   </div>
+  </div></div><div class="cap">Таймер · кольцо обратного отсчёта</div></div>
+
+ <!-- month -->
+ <div style="flex:1"><div class="sec">Месяц · состояния ячеек</div>
+  <div class="glass" style="padding:22px">
+   <div class="row" style="justify-content:space-between;margin-bottom:14px"><i data-i="chev" style="transform:rotate(180deg)" class="mute"></i><span class="disp" style="font-size:28px">Ноябрь 2026</span><i data-i="chev" class="mute"></i></div>
+   <div class="mgrid" style="margin-bottom:8px"><div class="mh">ПН</div><div class="mh">ВТ</div><div class="mh">СР</div><div class="mh">ЧТ</div><div class="mh">ПТ</div><div class="mh">СБ</div><div class="mh">ВС</div></div>
+   <div class="mgrid"><div class="mc empty"></div><div class="mc empty"></div><div class="mc empty"></div><div class="mc empty"></div><div class="mc empty"></div><div class="mc empty"></div><div class="mc off"><b>1</b><span></span></div><div class="mc m"><b>2</b><span>08–14</span></div><div class="mc m"><b>3</b><span>08–14</span></div><div class="mc e"><b>4</b><span>17–23</span></div><div class="mc off"><b>5</b><span></span></div><div class="mc e"><b>6</b><span>17–23</span></div><div class="mc n"><b>7</b><span>22–04</span></div><div class="mc x"><b>8</b><span>пропуск</span></div><div class="mc m"><b>9</b><span>08–14</span></div><div class="mc m"><b>10</b><span>08–14</span></div><div class="mc e"><b>11</b><span>17–23</span></div><div class="mc off"><b>12</b><span></span></div><div class="mc e"><b>13</b><span>17–23</span></div><div class="mc n"><b>14</b><span>22–04</span></div><div class="mc off"><b>15</b><span></span></div><div class="mc m"><b>16</b><span>08–14</span></div><div class="mc t"><b>17</b><span>08–14</span></div><div class="mc e"><b>18</b><span>17–23</span></div><div class="mc off"><b>19</b><span></span></div><div class="mc e"><b>20</b><span>17–23</span></div><div class="mc n"><b>21</b><span>22–04</span></div><div class="mc off"><b>22</b><span></span></div><div class="mc m"><b>23</b><span>08–14</span></div><div class="mc m"><b>24</b><span>08–14</span></div><div class="mc v"><b>25</b><span>отпуск</span></div><div class="mc v"><b>26</b><span>отпуск</span></div><div class="mc v"><b>27</b><span>отпуск</span></div><div class="mc off"><b>28</b><span></span></div><div class="mc off"><b>29</b><span></span></div><div class="mc e"><b>30</b><span>17–23</span></div></div>
+   <div class="row" style="flex-wrap:wrap;gap:16px;margin-top:18px"><span class="leg"><s style="background:rgba(168,197,160,.4)"></s>утро</span><span class="leg"><s style="background:rgba(232,137,74,.45)"></s>вечер</span><span class="leg"><s style="background:rgba(140,150,220,.45)"></s>ночь</span><span class="leg"><s style="background:var(--sage)"></s>сегодня</span><span class="leg"><s style="border:1px dashed var(--mute)"></s>отпуск</span><span class="leg"><s style="border:1px solid var(--danger)"></s>пропуск</span></div>
+  </div>
+  <div class="row" style="gap:16px;margin-top:20px;align-items:stretch">
+   <div class="glass" style="flex:1;padding:18px 20px"><div class="lbl">Часы · неделя</div><div class="row" style="align-items:baseline;gap:8px;margin-top:4px"><span class="disp" style="font-size:40px">30</span><span class="mute">/ 32 ч</span></div>
+    <div class="row" style="height:90px;align-items:flex-end;gap:8px;margin-top:8px"><div class="bar" style="height:70%"></div><div class="bar" style="height:70%;background:var(--sage);box-shadow:0 0 16px rgba(168,197,160,.5)"></div><div class="bar" style="height:70%"></div><div class="bar" style="height:6%"></div><div class="bar" style="height:70%"></div><div class="bar" style="height:70%"></div><div class="bar" style="height:6%"></div></div>
+    <div class="row" style="justify-content:space-between;font-size:10px;color:var(--dim);margin-top:6px;padding:0 4px"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div></div>
+   <div class="glass" style="flex:1;padding:18px 20px"><div class="lbl">Заработок · ноябрь</div><div class="disp" style="font-size:40px;margin-top:4px;color:var(--ember2)">642 €</div><div class="mute" style="font-size:12px">прогноз 1 040 € · 98 ч</div><div style="height:6px;border-radius:9px;background:rgba(255,255,255,.1);margin-top:22px"><div style="width:62%;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--ember2),var(--ember))"></div></div></div>
+  </div>
+ </div>
+</div>
+
+<div class="row" style="align-items:flex-start;gap:24px;margin-top:40px">
+ <div style="flex:1.1"><div class="sec">Карточка смены · состояния</div>
+  <div class="row" style="gap:14px;align-items:stretch">
+   <div class="glass" style="flex:1;padding:16px 18px"><span class="chip" style="height:24px;font-size:11px;padding:0 10px">скоро</span><div style="font-size:22px;font-weight:600;margin-top:10px">Ср · 17:00</div><div class="mute" style="font-size:12px">до 23:00 · 6 ч</div><div class="ember" style="font-size:12px;margin-top:10px">выйти в 16:15</div></div>
+   <div class="glass" style="flex:1;padding:16px 18px;border-color:rgba(168,197,160,.45)"><span class="chip on" style="height:24px;font-size:11px;padding:0 10px">● сейчас</span><div style="font-size:22px;font-weight:600;margin-top:10px">08:00–14:00</div><div style="height:5px;border-radius:9px;background:rgba(255,255,255,.1);margin-top:12px"><div style="width:75%;height:100%;border-radius:9px;background:var(--sage)"></div></div><div class="sage" style="font-size:12px;margin-top:8px">осталось 1:30</div></div>
+   <div class="glass" style="flex:1;padding:16px 18px;opacity:.75"><span class="chip" style="height:24px;font-size:11px;padding:0 10px;color:var(--dim)">✓ отработана</span><div style="font-size:22px;font-weight:600;margin-top:10px;color:var(--mute)">Пн · 6 ч</div><div class="mute" style="font-size:12px">+38,40 €</div></div>
+  </div></div>
+ <div style="flex:1"><div class="sec">Напоминание</div>
+  <div class="glass" style="padding:20px 22px">
+   <div class="row" style="justify-content:space-between"><span style="font-size:15px">Напомнить до смены</span><span class="disp" style="font-size:28px;color:var(--sage)">45 мин</span></div>
+   <div style="position:relative;height:44px;margin-top:6px"><div style="position:absolute;top:18px;left:0;right:0;height:6px;border-radius:9px;background:rgba(255,255,255,.12)"></div><div style="position:absolute;top:18px;left:0;width:50%;height:6px;border-radius:9px;background:var(--sage)"></div><div style="position:absolute;top:7px;left:calc(50% - 14px);width:28px;height:28px;border-radius:50%;background:#e9efe7;box-shadow:0 0 0 6px rgba(168,197,160,.25)"></div></div>
+   <div class="row" style="justify-content:space-between;font-size:11px;color:var(--dim)"><span>15</span><span>30</span><span>45</span><span>60</span><span>90</span></div>
+   <div class="row" style="gap:8px;margin-top:14px;flex-wrap:wrap"><span class="chip on">Остров</span><span class="chip on">Будильник</span><span class="chip">Векс в TG</span><span class="chip">Звук</span></div>
+  </div></div>
+ <div style="width:330px"><div class="sec">Импорт Orquest</div>
+  <div class="glass" style="padding:16px">
+   <div class="row" style="gap:14px"><div style="width:70px;height:96px;border-radius:12px;background:linear-gradient(180deg,#e9ece9,#c9cfca);position:relative;overflow:hidden;flex:none"><div style="position:absolute;left:8px;right:8px;top:10px;height:6px;background:#2c6e9e;border-radius:3px"></div><div style="position:absolute;left:8px;right:20px;top:24px;height:4px;background:#999;border-radius:2px"></div><div style="position:absolute;left:8px;right:14px;top:34px;height:4px;background:#999;border-radius:2px"></div><div style="position:absolute;left:8px;right:24px;top:44px;height:4px;background:#999;border-radius:2px"></div><div style="position:absolute;left:0;right:0;top:56px;height:2px;background:var(--sage);box-shadow:0 0 10px var(--sage)"></div></div>
+    <div style="flex:1"><b style="font-size:14px">Скрин распознан</b><div class="mute" style="font-size:12px;margin-top:2px">Найдено 5 смен на неделю 48</div><div class="row" style="gap:6px;margin-top:8px"><span class="chip on" style="height:24px;font-size:11px;padding:0 9px">5 ✓</span><span class="chip warn" style="height:24px;font-size:11px;padding:0 9px">1 проверить</span></div></div></div>
+   <div class="row" style="gap:10px;margin-top:14px"><span class="btn b-gho" style="height:42px;flex:1">Изменить</span><span class="btn b-pri" style="height:42px;flex:1">Добавить</span></div>
+  </div></div>
+</div>
+<div class="sec" style="margin-top:40px">Карточки таймеров</div><div class="row" style="gap:18px;align-items:stretch"><div class="glass" style="flex:1;padding:18px;display:flex;gap:16px;align-items:center">
+ <div class="ring" style="width:72px;height:72px;flex:none"><svg width="72" height="72"><circle cx="36" cy="36" r="32" stroke="rgba(255,255,255,.1)" stroke-width="6" fill="none"/><circle cx="36" cy="36" r="32" stroke="#a8c5a0" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="201" stroke-dashoffset="40"/></svg><i data-i="timer" data-s="24" style="color:#a8c5a0"></i></div>
+ <div style="flex:1"><div class="lbl" style="font-size:11px">Перерыв</div><div class="disp" style="font-size:34px;line-height:1.05">24:10</div><div class="mute" style="font-size:12px">из 30 мин · идёт</div></div><span class="btn b-sec b-ico" style="width:44px;height:44px"><i data-i="pause" data-s="18"></i></span></div><div class="glass" style="flex:1;padding:18px;display:flex;gap:16px;align-items:center;border-color:rgba(232,137,74,.45)">
+ <div class="ring" style="width:72px;height:72px;flex:none"><svg width="72" height="72"><circle cx="36" cy="36" r="32" stroke="rgba(255,255,255,.1)" stroke-width="6" fill="none"/><circle cx="36" cy="36" r="32" stroke="#e8894a" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="201" stroke-dashoffset="66"/></svg><i data-i="fire" data-s="24" style="color:#e8894a"></i></div>
+ <div style="flex:1"><div class="lbl" style="font-size:11px">Выход на смену</div><div class="disp" style="font-size:34px;line-height:1.05">13:20</div><div class="mute" style="font-size:12px">в 16:15 · с острова</div></div><span class="btn b-emb b-ico" style="width:44px;height:44px"><i data-i="pause" data-s="18"></i></span></div><div class="glass" style="flex:1;padding:18px;display:flex;gap:16px;align-items:center">
+ <div class="ring" style="width:72px;height:72px;flex:none"><svg width="72" height="72"><circle cx="36" cy="36" r="32" stroke="rgba(255,255,255,.1)" stroke-width="6" fill="none"/><circle cx="36" cy="36" r="32" stroke="#9aa59c" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="201" stroke-dashoffset="130"/></svg><i data-i="moon" data-s="24" style="color:#9aa59c"></i></div>
+ <div style="flex:1"><div class="lbl" style="font-size:11px">Отбой</div><div class="disp" style="font-size:34px;line-height:1.05">на паузе</div><div class="mute" style="font-size:12px">осталось 1 ч 05 мин</div></div><span class="btn b-pri b-ico" style="width:44px;height:44px"><i data-i="playf" data-s="18"></i></span></div><div class="glass" style="width:200px;padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border-style:dashed;color:var(--mute)"><i data-i="plus" data-s="28"></i><span style="font-size:13px">Новый таймер</span></div></div><div class="sec" style="margin-top:40px">Экран блокировки</div>
+<div class="row" style="gap:18px">
+ <div style="width:170px;height:76px;border-radius:22px;background:rgba(255,255,255,.1);backdrop-filter:blur(20px);padding:12px 16px;display:flex;gap:12px;align-items:center"><i data-i="shift" data-s="22"></i><div><b style="font-size:15px">17:00</b><div style="font-size:11px;opacity:.7">смена · среда</div></div></div>
+ <div style="width:76px;height:76px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:center;justify-content:center"><i data-i="can" data-s="18"></i><b style="font-size:13px;margin-top:2px">1/3</b></div>
+ <div style="width:76px;height:76px;border-radius:50%;background:conic-gradient(var(--ink) 0 67%,rgba(255,255,255,.12) 67%);display:flex;align-items:center;justify-content:center"><div style="width:62px;height:62px;border-radius:50%;background:#1c201e;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">13м</div></div>
+ <div style="width:360px;height:76px;border-radius:22px;background:rgba(255,255,255,.1);padding:12px 16px;display:flex;flex-direction:column;justify-content:center"><div style="font-size:11px;opacity:.7">ЗАВТРА · СМЕНЫ</div><div style="font-size:15px;font-weight:600">17:00–23:00 · выход 16:15 · будильник 15:30</div></div>
+ <span class="cap" style="margin-left:10px">Монохромные виджеты: прямоугольный, круглые счётчик и таймер, строка</span>
+</div></div>
+<div class="foot"><span>SANYA · DESIGN KIT v0.1</span><span>iPhone 15 · 393 × 852 pt</span></div>
+<script src="icons.js"></script></body></html>

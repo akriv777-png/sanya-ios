@@ -10,8 +10,8 @@ settings:
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Manual
     CODE_SIGN_IDENTITY: "-"
-    MARKETING_VERSION: "0.1.0"
-    CURRENT_PROJECT_VERSION: "1"
+    MARKETING_VERSION: "0.2.0"
+    CURRENT_PROJECT_VERSION: "2"
     TARGETED_DEVICE_FAMILY: "1"
     ENABLE_USER_SCRIPT_SANDBOXING: NO
 targets:
@@ -26,6 +26,7 @@ targets:
       properties:
         CFBundleDisplayName: Саня
         CFBundleDevelopmentRegion: ru
+        UIAppFonts: [CormorantGaramond-Medium.ttf, CormorantGaramond-SemiBold.ttf, Inter-Regular.ttf, Inter-Medium.ttf, Inter-SemiBold.ttf]
         CFBundleLocalizations: [ru]
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
@@ -62,6 +63,8 @@ targets:
         CFBundleDisplayName: Саня
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSSupportsLiveActivities: true
+        UIAppFonts: [CormorantGaramond-Medium.ttf, CormorantGaramond-SemiBold.ttf, Inter-Regular.ttf, Inter-Medium.ttf, Inter-SemiBold.ttf]
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
