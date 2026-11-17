@@ -1,0 +1,26 @@
+{
+  "name": "Саня (Nezich)",
+  "identifier": "com.nezich.source",
+  "subtitle": "Личный лаунчер Егора",
+  "apps": [
+    {
+      "name": "Sanya",
+      "bundleIdentifier": "com.nezich.sanya",
+      "developerName": "Nezich",
+      "localizedDescription": "Лаунчер Саня: ассистент, смены, плеер, таймеры, питомец, счётчик.",
+      "iconURL": "https://REPLACE_WITH_PUBLIC_HOST/icon.png",
+      "versions": [
+        {
+          "version": "0.3.0",
+          "buildVersion": "3",
+          "date": "2026-11-17",
+          "localizedDescription": "Остров с питомцем, ИИ, анимации и хаптика.",
+          "downloadURL": "https://REPLACE_WITH_PUBLIC_HOST/Sanya-v0.3-unsigned.ipa",
+          "size": 0,
+          "minOSVersion": "17.0"
+        }
+      ]
+    }
+  ],
+  "news": []
+}
