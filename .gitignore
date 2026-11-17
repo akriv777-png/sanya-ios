@@ -1,0 +1,9 @@
+*.xcodeproj/
+build/
+build-ios/
+DerivedData/
+out/
+Payload/
+artifacts/
+.DS_Store
+xcuserdata/
