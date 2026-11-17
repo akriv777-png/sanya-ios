@@ -37,6 +37,8 @@ struct IslandTrailing: View {
         } else {
             Text(timerInterval: context.state.start...max(context.state.start, context.state.end), countsDown: true)
                 .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
                 .multilineTextAlignment(.trailing)
                 .foregroundStyle(tint)
                 .frame(width: width)
@@ -106,7 +108,7 @@ struct SanyaLiveActivity: Widget {
             } compactLeading: {
                 CoverBadge(symbol: context.attributes.symbol, tint: tint, size: 22)
             } compactTrailing: {
-                IslandTrailing(context: context, barHeight: 14, width: 44)
+                IslandTrailing(context: context, barHeight: 14, width: 62)
             } minimal: {
                 Image(systemName: context.attributes.symbol).foregroundStyle(tint)
             }

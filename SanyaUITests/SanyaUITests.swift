@@ -100,11 +100,6 @@ final class SanyaUITests: XCTestCase {
     }
 
     func testTour3() {
-        tap("tile_timers"); pause(1.5)
-        tap("preset_0"); pause(1)
-        tap("preset_5"); pause(2)
-        shot("13_timers")
-        back()
         tap("tile_player"); pause(1.5)
         tap("player_toggle"); pause(4)
         shot("14_player")
@@ -113,6 +108,11 @@ final class SanyaUITests: XCTestCase {
         if flame.waitForExistence(timeout: 3) { flame.tap() }
         pause(2)
         showIsland("16_island_player_flame")
+        back()
+        tap("tile_timers"); pause(1.5)
+        tap("preset_0"); pause(1)
+        tap("preset_5"); pause(2)
+        shot("13_timers")
         back()
         shot("17_home_now_playing")
         app.swipeUp(); pause(1)
