@@ -66,10 +66,10 @@ final class SanyaUITests: XCTestCase {
     // MARK: - Tour 1: Launcher & Core Modules
 
     func testTour1() {
-        shot("v02_01_home")
+        shot("v03_launcher")
         app.swipeUp()
         pause(1.5)
-        shot("v02_02_home_modules")
+        shot("v03_launcher_modules")
         app.swipeDown()
         pause(1)
 
@@ -78,7 +78,15 @@ final class SanyaUITests: XCTestCase {
         pause(1.5)
         tap("theme_fog", timeout: 3)
         pause(1)
-        shot("v02_03_settings")
+        shot("v03_settings")
+        app.swipeUp(); pause(1)
+        shot("v03_settings_ai")
+        tap("island_preview", timeout: 4)
+        pause(2.5)
+        shot("v03_island_expanded")
+        app.swipeUp(); pause(1)
+        shot("v03_island_expanded_2")
+        back()
         let done = app.buttons["Готово"]
         if done.waitForExistence(timeout: 3) {
             done.tap()
@@ -92,19 +100,19 @@ final class SanyaUITests: XCTestCase {
         pause(2)
         chip(0)
         pause(2.5)
-        shot("v02_04_chat")
+        shot("v03_chat")
         back()
 
         // Shifts
         tap("tile_shifts")
         pause(2)
-        shot("v02_05_shifts")
+        shot("v03_shifts")
         back()
 
         // Timers
         tap("tile_timers")
         pause(2)
-        shot("v02_06_timers")
+        shot("v03_timers")
         back()
     }
 
@@ -113,7 +121,7 @@ final class SanyaUITests: XCTestCase {
     func testTour2() {
         tap("tile_pet")
         pause(2)
-        shot("v02_07_pet")
+        shot("v03_pet")
 
         // Preview transitions across 5-6 emotions
         for emo in ["happy", "sleep", "music", "angry", "bored", "calm"] {
@@ -126,23 +134,23 @@ final class SanyaUITests: XCTestCase {
         pause(1.5)
         tap("food_0", timeout: 3)
         pause(2)
-        shot("v02_08_pet_fed")
+        shot("v03_pet_fed")
 
         // Play with pet & view suggestions
         tap("pet_play")
         pause(2)
-        shot("v02_09_pet_suggest")
+        shot("v03_pet_suggest")
 
         // Pet Diary
         tap("pet_diary")
         pause(2)
-        shot("v02_10_diary")
+        shot("v03_diary")
         back()
 
         // Live Activity on Dynamic Island
         tap("pet_island")
         pause(1.5)
-        showIsland("v02_11_island_pet")
+        showIsland("v03_island_compact")
         back()
     }
 
@@ -153,14 +161,14 @@ final class SanyaUITests: XCTestCase {
         pause(2)
         tap("player_toggle")
         pause(3)
-        shot("v02_12_player")
+        shot("v03_player")
 
         // Player on Dynamic Island
-        showIsland("v02_13_island_player")
+        showIsland("v03_island_player")
         back()
 
         // Launcher with pet overlay
-        shot("v02_14_home_pet_overlay")
+        shot("v03_home_overlay")
 
         // Counter module
         app.swipeUp()
@@ -175,7 +183,7 @@ final class SanyaUITests: XCTestCase {
         pause(1.5)
         tap("counter_plus_energy")
         pause(2)
-        shot("v02_15_counter_grumble")
+        shot("v03_counter")
         back()
     }
 }

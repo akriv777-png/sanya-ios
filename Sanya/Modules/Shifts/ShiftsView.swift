@@ -190,7 +190,8 @@ struct ShiftsView: View {
             if let data = try? await item.loadTransferable(type: Data.self), let img = UIImage(data: data) {
                 lines = await OCR.recognize(img)
             }
-            let found = ShiftParser.parse(lines: lines)
+            var found = ShiftParser.parse(lines: lines)
+            if let ai = await ShiftAIParser.parse(lines: lines), ai.count >= found.count { found = ai }
             await MainActor.run {
                 scanning = false
                 photoItem = nil

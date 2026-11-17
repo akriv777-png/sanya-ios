@@ -74,6 +74,7 @@ final class CounterStore: ObservableObject {
     // MARK: - Actions
 
     func addEnergy() {
+        Haptics.tap()
         energyToday += 1
         save()
         EventBus.shared.emit(.counterAdded(kind: "energy", today: energyToday, limit: energyLimit))
@@ -86,6 +87,7 @@ final class CounterStore: ObservableObject {
     }
 
     func addSnus() {
+        Haptics.tap()
         snusToday += 1
         save()
         EventBus.shared.emit(.counterAdded(kind: "snus", today: snusToday, limit: snusLimit))

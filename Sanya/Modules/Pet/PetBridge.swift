@@ -60,7 +60,7 @@ final class PetIsland {
 
         let state = makeState(
             title: store.name,
-            subtitle: engine.currentEmotion.name,
+            subtitle: "\(store.bondLevel.name) · \(engine.currentEmotion.name)",
             spriteID: spriteID,
             stats: store.stats
         )
@@ -81,7 +81,7 @@ final class PetIsland {
 
         let state = makeState(
             title: store.name,
-            subtitle: engine.currentEmotion.name,
+            subtitle: "\(store.bondLevel.name) · \(engine.currentEmotion.name)",
             spriteID: spriteID,
             stats: stats
         )

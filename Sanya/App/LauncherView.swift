@@ -23,20 +23,24 @@ struct LauncherView: View {
                         // ── greeting + date ──────────────────────────────
                         headerSection
                             .padding(.top, 60)
+                            .appearIn(0)
 
                         // ── search field ─────────────────────────────────
                         searchBar
+                            .appearIn(1)
 
                         // ── widget row: next shift + now playing ─────────
                         widgetRow
+                            .appearIn(2)
 
                         // ── Modules grid ─────────────────────────────────
                         SectionHeader("Модули")
                             .padding(.top, 4)
 
-                        LazyVGrid(columns: cols, spacing: 10) {
+                        LazyVGrid(columns: cols, spacing: 14) {
                             ForEach(Modules.ready) { m in tile(m) }
                         }
+                        .appearIn(3)
 
                         // ── Soon ─────────────────────────────────────────
                         SectionHeader("Скоро", trailing:
@@ -46,9 +50,10 @@ struct LauncherView: View {
                         )
                         .padding(.top, 6)
 
-                        LazyVGrid(columns: cols, spacing: 10) {
+                        LazyVGrid(columns: cols, spacing: 14) {
                             ForEach(Modules.soon) { m in tile(m) }
                         }
+                        .appearIn(4)
 
                         // Bottom padding so dock doesn't overlap content
                         Spacer().frame(height: 100)
@@ -136,7 +141,7 @@ struct LauncherView: View {
         NavigationLink(value: m.id) {
             DSModuleTile(info: m)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressableStyle())
         .accessibilityIdentifier("tile_\(m.id.rawValue)")
     }
 
@@ -165,8 +170,9 @@ struct LauncherView: View {
                 .foregroundStyle(DS.Color.ink.opacity(0.85))
                 .frame(maxWidth: .infinity)
                 .frame(height: 40)
+                .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressableStyle(scale: 0.85))
         .accessibilityIdentifier(id)
     }
 
@@ -265,8 +271,10 @@ struct SettingsView: View {
     @AppStorage("petOverlay")  private var petOverlay = true
     @AppStorage("ai.speak")    private var speak      = true
     @AppStorage("ai.endpoint") private var endpoint  = ""
-    @AppStorage("ai.model")    private var aiModel   = "gpt-4o-mini"
+    @AppStorage("ai.model")    private var aiModel   = ""
+    @AppStorage("ai.enabled")  private var aiEnabled = true
     @State private var key = Keychain.get("ai.key")
+    @State private var aiStatus = ""
 
     private let themes: [(String, String, String)] = [
         ("sea",      "Море",   "bg_sea"),
@@ -342,25 +350,62 @@ struct SettingsView: View {
 
                 // AI
                 Section {
-                    TextField("https://…/v1/chat/completions", text: $endpoint)
+                    Toggle("ИИ включён", isOn: $aiEnabled)
+                        .toggleStyle(DSToggleStyle())
+                        .font(DS.Font.body).foregroundStyle(DS.Color.ink)
+                        .accessibilityIdentifier("ai_toggle")
+                    TextField("Свой сервер (пусто = бесплатный)", text: $endpoint)
                         .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
                         .font(DS.Font.body).foregroundStyle(DS.Color.ink)
-                    TextField("Модель", text: $aiModel)
-                        .textInputAutocapitalization(.never)
+                    TextField("Модель (пусто = openai)", text: $aiModel)
+                        .textInputAutocapitalization(.never).autocorrectionDisabled()
                         .font(DS.Font.body).foregroundStyle(DS.Color.ink)
-                    SecureField("Ключ доступа", text: $key)
+                    SecureField("Ключ (если нужен)", text: $key)
                         .font(DS.Font.body).foregroundStyle(DS.Color.ink)
+                    Button {
+                        Keychain.set(key, for: "ai.key")
+                        aiStatus = "проверяю…"
+                        Task {
+                            let ok: Bool
+                            do { _ = try await AIClient.chat(system: "Ответь одним словом.", messages: [(role: "user", content: "пинг")], maxTokens: 20); ok = true } catch { ok = false }
+                            await MainActor.run {
+                                aiStatus = ok ? "на связи ✓" : "не отвечает"
+                                if ok { Haptics.success() } else { Haptics.warning() }
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text("Проверить связь").font(DS.Font.body).foregroundStyle(DS.Color.sage)
+                            Spacer()
+                            Text(aiStatus).font(DS.Font.caption).foregroundStyle(DS.Color.mute)
+                        }
+                    }
+                    .accessibilityIdentifier("ai_ping")
                 } header: {
-                    Text("Сервер ИИ")
+                    Text("ИИ")
                         .font(DS.Font.label).tracking(2).foregroundStyle(DS.Color.mute).textCase(.uppercase)
                 } footer: {
-                    Text("Ключ — только в Keychain, не в коде.")
+                    Text("По умолчанию — бесплатный публичный ИИ без ключа (в приложении нет секретов). Свой сервер: любой OpenAI-совместимый адрес; ключ хранится только в Keychain. Ссылка sanya://ai?url=…&key=… заполнит всё сама.")
                         .font(DS.Font.caption).foregroundStyle(DS.Color.dim)
+                }
+
+                // Island preview
+                Section {
+                    NavigationLink {
+                        IslandPreviewView()
+                    } label: {
+                        Label("Предпросмотр острова", systemImage: "capsule.fill")
+                            .font(DS.Font.body).foregroundStyle(DS.Color.ink)
+                    }
+                    .accessibilityIdentifier("island_preview")
+                } header: {
+                    Text("Остров")
+                        .font(DS.Font.label).tracking(2).foregroundStyle(DS.Color.mute).textCase(.uppercase)
                 }
 
                 // About
                 Section {
-                    LabeledContent("Версия", value: "0.2.0")
+                    LabeledContent("Версия", value: (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "—")
                     LabeledContent("Модулей готово", value: "\(Modules.ready.count) из \(Modules.all.count)")
                 } header: {
                     Text("О приложении")

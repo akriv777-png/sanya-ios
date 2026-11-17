@@ -204,36 +204,5 @@ struct ListeningOrb: View {
 }
 
 struct AssistantSettingsView: View {
-    @Environment(\.dismiss) private var dismiss
-    @AppStorage("ai.endpoint") private var endpoint = ""
-    @AppStorage("ai.model")    private var model    = "gpt-4o-mini"
-    @AppStorage("ai.speak")    private var speak    = true
-    @State private var key = Keychain.get("ai.key")
-
-    var body: some View {
-        Form {
-            Section {
-                TextField("https://…/v1/chat/completions", text: $endpoint)
-                    .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                TextField("Модель", text: $model).textInputAutocapitalization(.never)
-                SecureField("Ключ доступа", text: $key)
-            } header: { Text("Сервер ИИ") } footer: {
-                Text("OpenAI-совместимый адрес или свой прокси на боксе. Ключ хранится только в Keychain телефона.")
-            }
-            Section("Голос") {
-                Toggle("Озвучивать ответы", isOn: $speak)
-            }
-            Section("О приложении") {
-                LabeledContent("Версия", value: "0.2.0")
-                LabeledContent("Модулей готово", value: "\(Modules.ready.count) из \(Modules.all.count)")
-            }
-        }
-        .navigationTitle("Настройки ИИ")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Готово") { Keychain.set(key, for: "ai.key"); dismiss() }
-            }
-        }
-    }
+    var body: some View { SettingsView() }
 }

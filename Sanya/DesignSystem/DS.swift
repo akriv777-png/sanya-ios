@@ -134,8 +134,9 @@ struct GlassButtonStyle: ButtonStyle {
             .background(bg.opacity(configuration.isPressed ? 0.7 : 1))
             .clipShape(Capsule(style: .continuous))
             .overlay(Capsule(style: .continuous).stroke(strokeColor, lineWidth: 1))
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+            .animation(.spring(response: 0.28, dampingFraction: 0.62), value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { _, pressed in if pressed { Haptics.tap() } }
     }
 
     private var labelColor: SwiftUI.Color {
@@ -404,4 +405,35 @@ struct DSModuleTile: View {
         .opacity(info.ready ? 1.0 : 0.7)
         .contentShape(Rectangle())
     }
+}
+
+
+/// Spring press + haptic for tiles, cards and dock buttons.
+struct PressableStyle: ButtonStyle {
+    var scale: CGFloat = 0.93
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? scale : 1)
+            .brightness(configuration.isPressed ? 0.04 : 0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { _, pressed in if pressed { Haptics.tap() } }
+    }
+}
+
+/// Staggered fade/slide-in used for launcher sections.
+struct AppearIn: ViewModifier {
+    let index: Int
+    @State private var shown = false
+    func body(content: Content) -> some View {
+        content
+            .opacity(shown ? 1 : 0)
+            .offset(y: shown ? 0 : 14)
+            .onAppear {
+                withAnimation(.spring(response: 0.55, dampingFraction: 0.85).delay(0.05 * Double(index))) { shown = true }
+            }
+    }
+}
+
+extension View {
+    func appearIn(_ index: Int) -> some View { modifier(AppearIn(index: index)) }
 }

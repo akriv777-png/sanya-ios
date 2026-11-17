@@ -18,6 +18,7 @@ struct PetDiaryView: View {
 
                     // Generate button
                     Button {
+                        Haptics.tap()
                         diary.generateCurrentWeek()
                     } label: {
                         HStack {
@@ -35,6 +36,22 @@ struct PetDiaryView: View {
                     .buttonStyle(GlassButtonStyle(kind: .primary))
                     .padding(.horizontal, 16)
                     .disabled(diary.isGenerating)
+
+                    Button {
+                        Haptics.soft()
+                        diary.generateCurrentWeek(useAI: true)
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "sparkles")
+                            Text("Переписать с ИИ")
+                                .font(DS.Font.ui(15, weight: .medium))
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(GlassButtonStyle(kind: .secondary))
+                    .padding(.horizontal, 16)
+                    .disabled(diary.isGenerating || !AIClient.isConfigured)
+                    .accessibilityIdentifier("diary_ai")
 
                     if diary.entries.isEmpty && !diary.isGenerating {
                         emptyState

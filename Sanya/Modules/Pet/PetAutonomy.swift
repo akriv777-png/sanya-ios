@@ -8,7 +8,7 @@ import Combine
 
 struct PetSuggestion: Identifiable {
     let id: UUID
-    let text: String
+    var text: String
     let actionTitle: String
     let canAutoExecute: Bool    // bond ≥ 4 → he does it himself
     let onAccept: () -> Void
@@ -82,6 +82,27 @@ final class PetAutonomy: ObservableObject {
     }
 
     // MARK: - Evaluation
+
+    // MARK: - AI flavour
+
+    private var flavorCache: [String: (line: String, at: Date)] = [:]
+
+    private func enrich(_ id: UUID, base: String) {
+        if let c = flavorCache[base], Date().timeIntervalSince(c.at) < 3600 { replaceText(id, c.line); return }
+        guard AIClient.isConfigured else { return }
+        Task { [weak self] in
+            guard let line = await AIClient.petLine("Скажи хозяину своими словами (коротко, дерзко): \(base)") else { return }
+            await MainActor.run {
+                self?.flavorCache[base] = (line: line, at: Date())
+                self?.replaceText(id, line)
+            }
+        }
+    }
+
+    private func replaceText(_ id: UUID, _ text: String) {
+        guard let i = suggestions.firstIndex(where: { $0.id == id }) else { return }
+        suggestions[i].text = text
+    }
 
     private func evaluateSuggestions() {
         guard store.bondLevel.rawValue >= 2 else {
@@ -200,6 +221,7 @@ final class PetAutonomy: ObservableObject {
         guard suggestions.count < 3 else { return }
         guard !suggestions.contains(where: { $0.text == s.text }) else { return }
         suggestions.append(s)
+        enrich(s.id, base: s.text)
     }
 
     func dismiss(_ id: UUID) {

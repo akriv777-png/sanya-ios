@@ -82,14 +82,26 @@ final class PetEngine: ObservableObject {
         guard !def.bubble.isEmpty else { return }
         // Show bubble ~40% of the time on emotion change
         guard Double.random(in: 0...1) < 0.4 else { return }
+        // At most one AI line per 10 minutes; otherwise the bundled lines.
+        if AIClient.isConfigured, Date().timeIntervalSince(lastAIBubble) > 600 {
+            lastAIBubble = Date()
+            let mood = def.name
+            Task { [weak self] in
+                let line = await AIClient.petLine("Ты сейчас: \(mood). Скажи что-нибудь хозяину.")
+                await MainActor.run { self?.showBubble(line ?? (def.bubble.randomElement() ?? "")) }
+            }
+            return
+        }
         let line = def.bubble.randomElement() ?? ""
         showBubble(line)
     }
 
+    private var lastAIBubble: Date = .distantPast
+
     func showBubble(_ text: String) {
         bubbleText = text
         bubbleTimer?.invalidate()
-        bubbleTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { [weak self] _ in
+        bubbleTimer = Timer.scheduledTimer(withTimeInterval: text.count > 40 ? 5.0 : 3.5, repeats: false) { [weak self] _ in
             DispatchQueue.main.async { self?.bubbleText = nil }
         }
     }

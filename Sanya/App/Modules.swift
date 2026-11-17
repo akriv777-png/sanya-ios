@@ -54,6 +54,7 @@ final class Router: ObservableObject {
     @Published var path: [ModuleID] = []
     func go(_ m: ModuleID) { path = [m] }
     func open(_ url: URL) {
+        if AIClient.configure(from: url) { Haptics.success(); return }
         if let h = url.host, let m = ModuleID(rawValue: h) { go(m) }
     }
 }

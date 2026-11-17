@@ -47,38 +47,6 @@ enum LocalBrain {
     }
 }
 
-enum AIError: LocalizedError {
-    case notConfigured, badResponse
-    var errorDescription: String? { self == .notConfigured ? "Сервер ИИ не настроен" : "Сервер ответил непонятно" }
-}
-
-/// Клиент OpenAI-совместимого эндпоинта (или своего прокси на боксе). Ключ — только в Keychain, не в коде.
-enum AIClient {
-    static let systemPrompt = "Ты Саня — дерзкий, тёплый голосовой ассистент Егора на iPhone. Отвечай по-русски, коротко и по делу, с юмором."
-    static var endpoint: String { UserDefaults.standard.string(forKey: "ai.endpoint") ?? "" }
-    static var isConfigured: Bool { URL(string: endpoint) != nil && !endpoint.isEmpty }
-
-    static func complete(_ history: [ChatMessage]) async throws -> String {
-        guard isConfigured, let url = URL(string: endpoint) else { throw AIError.notConfigured }
-        var req = URLRequest(url: url)
-        req.httpMethod = "POST"
-        req.timeoutInterval = 60
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let key = Keychain.get("ai.key")
-        if !key.isEmpty { req.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization") }
-        let model = UserDefaults.standard.string(forKey: "ai.model") ?? "gpt-4o-mini"
-        var msgs: [[String: String]] = [["role": "system", "content": systemPrompt]]
-        msgs += history.suffix(20).map { ["role": $0.role, "content": $0.text] }
-        req.httpBody = try JSONSerialization.data(withJSONObject: ["model": model, "messages": msgs])
-        let (data, _) = try await URLSession.shared.data(for: req)
-        let obj = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-        if let choices = obj?["choices"] as? [[String: Any]],
-           let msg = choices.first?["message"] as? [String: Any],
-           let content = msg["content"] as? String { return content }
-        if let reply = obj?["reply"] as? String { return reply }
-        throw AIError.badResponse
-    }
-}
 
 final class AssistantModel: ObservableObject {
     static let shared = AssistantModel()
@@ -113,14 +81,14 @@ final class AssistantModel: ObservableObject {
             return
         }
         guard AIClient.isConfigured else {
-            respond("Я пока в демо-режиме без сервера ИИ, поэтому понимаю только команды. Подключи сервер в ⚙︎ — и поговорим обо всём. А пока попробуй «что ты умеешь».", delay: 0.8)
+            respond("ИИ выключен в ⚙︎ → «ИИ». Пока понимаю только команды — попробуй «что ты умеешь».", delay: 0.8)
             return
         }
         thinking = true
         let history = messages
         Task {
-            let reply: String
-            do { reply = try await AIClient.complete(history) } catch { reply = "⚠️ \(error.localizedDescription)" }
+            var reply: String
+            do { reply = try await AIClient.complete(history, system: AIClient.sanyaSystemPrompt()) } catch { reply = "⚠️ \(error.localizedDescription)" }
             await MainActor.run { self.respond(reply, delay: 0) }
         }
     }

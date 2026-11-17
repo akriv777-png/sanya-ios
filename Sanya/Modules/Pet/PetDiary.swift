@@ -146,16 +146,25 @@ struct LocalDiaryGenerator: DiaryGenerator {
     }
 }
 
-// MARK: - AIDiaryGenerator stub
+// MARK: - AIDiaryGenerator
 
+/// Writes the week in the pet's voice through AIClient; falls back to LocalDiaryGenerator on any error.
 struct AIDiaryGenerator: DiaryGenerator {
-    // TODO: call OpenAI-compatible endpoint from Assistant settings
-    // Endpoint: UserDefaults.standard.string(forKey: "aiBaseURL") ?? ""
-    // Key: Keychain.get("openai_key")
-    // Build a prompt from WeeklyStats + petName + bond level
-    // Parse JSON response as [String]
     func generate(stats: WeeklyStats, petName: String, bondLevel: BondLevel) async -> [String] {
-        // Stub: fall back to local generator
+        let facts = "смен: \(stats.shifts), часов на работе: \(Int(stats.shiftHours)), треков: \(stats.tracksPlayed), " +
+            "кормёжек: \(stats.feedings), таймеров: \(stats.timersDone), энергетиков: \(stats.energyDrinks), снюс: \(stats.snus), " +
+            "сообщений Сане: \(stats.chatMessages), уровень связи: \(bondLevel.name)"
+        let sys = "Ты «\(petName)» — мрачный чиби эмо-пацан, питомец в айфоне Егора (он работает в McDonald's). " +
+            "Пишешь личный дневник «как я провёл неделю»: 5–7 коротких строк от первого лица, сарказм, тёмный юмор, сленг, " +
+            "иногда про хозяина в третьем лице. Без магии, без фэнтези, без морали и нотаций. Каждая строка с новой строки, без нумерации."
+        do {
+            let text = try await AIClient.chat(system: sys, messages: [(role: "user", content: "Факты недели: \(facts)")],
+                                               temperature: 0.95, maxTokens: 500)
+            let lines = text.components(separatedBy: "\n")
+                .map { $0.trimmingCharacters(in: CharacterSet(charactersIn: " -•*0123456789.)\t")) }
+                .filter { $0.count > 3 }
+            if lines.count >= 2 { return Array(lines.prefix(8)) }
+        } catch {}
         return await LocalDiaryGenerator().generate(stats: stats, petName: petName, bondLevel: bondLevel)
     }
 }
@@ -169,7 +178,6 @@ final class PetDiary: ObservableObject {
     @Published var isGenerating: Bool = false
 
     private let saveKey = "petDiary_v1"
-    private var generator: DiaryGenerator = LocalDiaryGenerator()
 
     private init() {
         loadEntries()
@@ -191,8 +199,9 @@ final class PetDiary: ObservableObject {
 
     // MARK: - Generation
 
-    func generateCurrentWeek() {
+    func generateCurrentWeek(useAI: Bool = false) {
         guard !isGenerating else { return }
+        let generator: DiaryGenerator = (useAI && AIClient.isConfigured) ? AIDiaryGenerator() : LocalDiaryGenerator()
         isGenerating = true
 
         let cal = Calendar.current

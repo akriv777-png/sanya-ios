@@ -69,9 +69,9 @@ jobs:
           APP=build-ios/Build/Products/Release-iphoneos/Sanya.app
           grep -q "BUILD SUCCEEDED" ipa.log || { grep -A6 "error:" ipa.log | head -100; exit 1; }
           mkdir -p Payload out && cp -R "$APP" Payload/
-          zip -qry out/Sanya-v0.2-unsigned.ipa Payload
+          zip -qry out/Sanya-v0.3-unsigned.ipa Payload
           ls -la out
       - uses: actions/upload-artifact@v4
         with:
           name: sanya-ipa
-          path: out/Sanya-v0.2-unsigned.ipa
+          path: out/Sanya-v0.3-unsigned.ipa

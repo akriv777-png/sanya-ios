@@ -184,3 +184,51 @@ enum ShiftParser {
         return result
     }
 }
+
+// MARK: - ИИ-разбор скрина Orquest
+
+/// Sends on-device OCR text to AIClient and asks for strict JSON shifts. Returns nil on any failure
+/// so the caller falls back to the local ShiftParser.
+enum ShiftAIParser {
+    private struct Item: Decodable { let date: String; let start: String; let end: String; let note: String? }
+
+    static func parse(lines: [String], reference: Date = Date()) async -> [Shift]? {
+        guard AIClient.isConfigured, !lines.isEmpty else { return nil }
+        let cal = Fmt.cal
+        let year = cal.component(.year, from: reference)
+        let today = ISO.day.string(from: reference)
+        let sys = "Ты разбираешь OCR-текст скриншота графика смен Orquest (McDonald's, Испания; дни по-испански: LUN MAR MIÉ JUE VIE SÁB DOM). " +
+            "Сегодня \(today), год \(year). Верни JSON-массив [{\"date\":\"yyyy-MM-dd\",\"start\":\"HH:mm\",\"end\":\"HH:mm\",\"note\":\"\"}] только для рабочих смен; " +
+            "выходные (LIBRE, descanso, vacaciones) пропускай. Если конец меньше начала — смена через полночь, дату оставь днём начала."
+        let text = lines.joined(separator: "\n")
+        guard let items = try? await AIClient.json([Item].self, system: sys, user: String(text.prefix(3500))) else { return nil }
+        var out: [Shift] = []
+        for it in items {
+            guard let day = ISO.day.date(from: it.date),
+                  let s = hm(it.start), let e = hm(it.end),
+                  let start = cal.date(bySettingHour: s.0, minute: s.1, second: 0, of: day),
+                  var end = cal.date(bySettingHour: e.0, minute: e.1, second: 0, of: day) else { continue }
+            if end <= start { end = cal.date(byAdding: .day, value: 1, to: end) ?? end }
+            guard end.timeIntervalSince(start) <= 14 * 3600 else { continue }
+            out.append(Shift(start: start, end: end, note: it.note ?? ""))
+        }
+        return out.isEmpty ? nil : out.sorted { $0.start < $1.start }
+    }
+
+    private static func hm(_ s: String) -> (Int, Int)? {
+        let p = s.trimmingCharacters(in: .whitespaces).split(separator: ":")
+        guard p.count == 2, let h = Int(p[0]), let m = Int(p[1]), (0...24).contains(h), (0...59).contains(m) else { return nil }
+        return (h == 24 ? 0 : h, m)
+    }
+}
+
+enum ISO {
+    static let day: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.calendar = Calendar(identifier: .gregorian)
+        f.timeZone = TimeZone.current
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
+}

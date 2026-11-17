@@ -19,16 +19,15 @@ public struct PetModuleView: View {
     public init() {}
 
     public var body: some View {
-        NavigationStack {
-            ZStack {
-                AtmosphereBackground()
-                content
-            }
-            .navigationTitle("Питомец")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(isPresented: $showDiary) { PetDiaryView() }
-            .sheet(isPresented: $showFoodSheet) { foodSheet }
+        // No nested NavigationStack: this screen is pushed inside the launcher's stack.
+        ZStack {
+            AtmosphereBackground()
+            content
         }
+        .navigationTitle("Питомец")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(isPresented: $showDiary) { PetDiaryView() }
+        .sheet(isPresented: $showFoodSheet) { foodSheet.presentationDetents([.medium]) }
         // Start bridge + autonomy on appear
         .onAppear {
             _ = PetBridge.shared
@@ -180,9 +179,11 @@ public struct PetModuleView: View {
                 showFoodSheet = true
             }
             actionBtn(label: "Играть", icon: "figure.play", id: "pet_play") {
+                Haptics.soft()
                 store.play()
             }
             actionBtn(label: "Почесать", icon: "hand.point.up.left.fill", id: "pet_pet") {
+                Haptics.soft()
                 store.pet()
                 withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) { petFeedback = true }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
@@ -311,6 +312,7 @@ public struct PetModuleView: View {
 
                     ForEach(Array(PetFood.menu.enumerated()), id: \.element.id) { idx, food in
                         Button {
+                            Haptics.success()
                             store.feed(food: food)
                             showFoodSheet = false
                         } label: {
