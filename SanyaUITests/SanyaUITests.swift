@@ -36,7 +36,9 @@ final class SanyaUITests: XCTestCase {
     func chip(_ i: Int) {
         let e = el("chip_\(i)")
         guard e.waitForExistence(timeout: 6) else { XCTFail("нет chip_\(i)"); return }
-        if !e.isHittable { app.scrollViews.containing(.button, identifier: "chip_0").firstMatch.swipeLeft(); pause(0.6) }
+        let w = app.frame.width
+        let bar = app.scrollViews.containing(.button, identifier: "chip_0").firstMatch
+        if e.frame.maxX > w - 4 { bar.swipeLeft(); pause(0.8) } else if e.frame.minX < 4 { bar.swipeRight(); pause(0.8) }
         e.tap()
     }
 
