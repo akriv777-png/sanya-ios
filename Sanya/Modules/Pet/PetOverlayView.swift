@@ -35,7 +35,7 @@ public struct PetOverlayView: View {
                     // Transparent layer — passes all hits through
                     Color.clear
                         .allowsHitTesting(false)
-                        .accessibilityIdentifier("pet_overlay")
+                        .accessibilityHidden(true)
 
                     // Bubble (above pet)
                     if let bubble = engine.bubbleText {
@@ -47,6 +47,7 @@ public struct PetOverlayView: View {
 
                     // Pet sprite — ONLY this has hit-testing
                     PetSpriteView(emotion: engine.currentEmotion, size: petSize)
+                        .accessibilityIdentifier("pet_overlay")
                         .scaleEffect(x: life.isMirrored ? -1 : 1, anchor: .bottom)
                         .scaleEffect(tapFeedback ? 1.15 : 1.0)
                         .offset(petXOffset(geo) + dragOffset)
@@ -94,7 +95,8 @@ public struct PetOverlayView: View {
 
     private func petXOffset(_ geo: GeometryProxy) -> CGSize {
         let x = CGFloat(life.wanderPosition) * (geo.size.width - petSize) + screenPad
-        let y = -geo.safeAreaInsets.bottom - screenPad
+        // Walk on a lane just above the glass dock so he never covers dock buttons.
+        let y = -geo.safeAreaInsets.bottom - screenPad - 66
         return CGSize(width: x, height: y)
     }
 
