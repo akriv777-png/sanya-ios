@@ -308,23 +308,28 @@ struct AtmosphereBackground: View {
     var body: some View {
         let valid = ["sea", "fog", "city", "concrete"]
         let safeTheme = valid.contains(theme) ? theme : "sea"
-        ZStack {
-            let img = "bg_\(safeTheme)"
-            Image(img)
-                .resizable()
-                .scaledToFill()
-                .saturation(0.8)
-                .ignoresSafeArea()
-            LinearGradient(
-                stops: [
-                    .init(color: SwiftUI.Color(red: 14/255, green: 18/255, blue: 16/255).opacity(0.55), location: 0),
-                    .init(color: SwiftUI.Color(red: 14/255, green: 18/255, blue: 16/255).opacity(0.78), location: 0.45),
-                    .init(color: SwiftUI.Color(red: 10/255, green: 12/255, blue: 11/255).opacity(0.9),  location: 1),
-                ],
-                startPoint: .top, endPoint: .bottom
+        // Color is flexible: it takes exactly the proposed size, overlays are clipped to it,
+        // so a scaledToFill image can never widen the parent layout.
+        SwiftUI.Color(hex: "0E1210")
+            .overlay(
+                Image("bg_\(safeTheme)")
+                    .resizable()
+                    .scaledToFill()
+                    .saturation(0.8)
             )
+            .overlay(
+                LinearGradient(
+                    stops: [
+                        .init(color: SwiftUI.Color(red: 14/255, green: 18/255, blue: 16/255).opacity(0.55), location: 0),
+                        .init(color: SwiftUI.Color(red: 14/255, green: 18/255, blue: 16/255).opacity(0.78), location: 0.45),
+                        .init(color: SwiftUI.Color(red: 10/255, green: 12/255, blue: 11/255).opacity(0.9),  location: 1),
+                    ],
+                    startPoint: .top, endPoint: .bottom
+                )
+            )
+            .clipped()
             .ignoresSafeArea()
-        }
+            .allowsHitTesting(false)
     }
 }
 
@@ -336,59 +341,67 @@ struct DSModuleTile: View {
     var hasBadge: Bool = false
     var badgeLabel: String? = nil
 
+    static func symbol(_ id: ModuleID) -> String {
+        switch id {
+        case .assistant: return "bubble.left"
+        case .shifts:    return "briefcase"
+        case .book:      return "book.closed"
+        case .timers:    return "timer"
+        case .player:    return "play.circle"
+        case .pet:       return "face.smiling"
+        case .counter:   return "takeoutbag.and.cup.and.straw"
+        case .vex:       return "checkmark.shield"
+        case .vault:     return "lock"
+        case .piggy:     return "eurosign.circle"
+        case .rust:      return "chevron.left.forwardslash.chevron.right"
+        case .ml:        return "gamecontroller"
+        case .weather:   return "cloud.sun"
+        case .scanner:   return "doc.viewfinder"
+        case .diary:     return "note.text"
+        case .wardrobe:  return "tshirt"
+        case .webapps:   return "square.grid.2x2"
+        case .home:      return "house"
+        case .games:     return "die.face.5"
+        }
+    }
+
     var body: some View {
-        let tint = SwiftUI.Color(hex: info.tint)
-        VStack(spacing: 6) {
-            Spacer(minLength: 0)
-            Text(info.emoji)
-                .font(.system(size: 30))
-            Text(info.title)
-                .font(DS.Font.label)
-                .tracking(0.3)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .foregroundStyle(DS.Color.ink)
-            if !info.ready {
-                Text(info.wave)
-                    .font(DS.Font.caption)
-                    .foregroundStyle(DS.Color.dim)
+        VStack(spacing: 7) {
+            ZStack {
+                RoundedRectangle(cornerRadius: DS.Radius.tile, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: DS.Radius.tile, style: .continuous)
+                    .fill(SwiftUI.Color(red: 22/255, green: 26/255, blue: 24/255).opacity(0.55))
+                RoundedRectangle(cornerRadius: DS.Radius.tile, style: .continuous)
+                    .stroke(SwiftUI.Color.white.opacity(0.12), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(DS.Color.sage.opacity(info.ready ? 0.14 : 0.06))
+                    .frame(width: 38, height: 38)
+                Image(systemName: Self.symbol(info.id))
+                    .font(.system(size: 18, weight: .light))
+                    .foregroundStyle(info.ready ? DS.Color.sage : DS.Color.dim)
             }
-            Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 88)
-        .background {
-            RoundedRectangle(cornerRadius: DS.Radius.tile, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: DS.Radius.tile, style: .continuous)
-                        .fill(tint.opacity(info.ready ? 0.14 : 0.06))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: DS.Radius.tile, style: .continuous)
-                        .stroke(tint.opacity(info.ready ? 0.5 : 0.18), lineWidth: 1)
-                )
-        }
-        .opacity(info.ready ? 1.0 : 0.65)
-        .overlay(alignment: .topTrailing) {
-            if hasBadge {
-                if let label = badgeLabel {
-                    Text(label)
-                        .font(DS.Font.caption)
-                        .foregroundStyle(DS.Color.ember2)
-                        .padding(.horizontal, 7)
-                        .frame(height: 18)
-                        .background(DS.Color.ember.opacity(0.25), in: Capsule())
-                        .overlay(Capsule().stroke(DS.Color.ember2.opacity(0.5), lineWidth: 1))
-                        .padding(6)
-                } else {
-                    Circle()
-                        .fill(DS.Color.ember)
-                        .frame(width: 10, height: 10)
-                        .padding(8)
+            .frame(width: 66, height: 66)
+            .overlay(alignment: .topTrailing) {
+                if !info.ready {
+                    Text("скоро")
+                        .font(.custom("Inter-Medium", size: 8))
+                        .foregroundStyle(DS.Color.mute)
+                        .padding(.horizontal, 5).padding(.vertical, 2)
+                        .background(SwiftUI.Color.white.opacity(0.08), in: Capsule())
+                        .offset(x: 6, y: -5)
+                } else if hasBadge {
+                    Circle().fill(DS.Color.ember).frame(width: 8, height: 8).offset(x: -6, y: 6)
                 }
             }
+            Text(info.title)
+                .font(.custom("Inter-Regular", size: 11))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .foregroundStyle(info.ready ? DS.Color.ink : DS.Color.mute)
         }
+        .frame(maxWidth: .infinity)
+        .opacity(info.ready ? 1.0 : 0.7)
         .contentShape(Rectangle())
     }
 }

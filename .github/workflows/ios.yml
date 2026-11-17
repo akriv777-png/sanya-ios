@@ -45,6 +45,8 @@ jobs:
             wait $REC || true
           done
           ls -la out/videos out/shots
+          mkdir -p out/crashes && cp ~/Library/Logs/DiagnosticReports/Sanya* out/crashes/ 2>/dev/null || true
+          ls out/crashes
           cat out/failures.txt 2>/dev/null || echo "all tours passed"
       - uses: actions/upload-artifact@v4
         if: always()
@@ -54,6 +56,7 @@ jobs:
             out/videos
             out/shots
             out/failures.txt
+            out/crashes
             out/*.log
             build.log
   ipa:

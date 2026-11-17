@@ -81,29 +81,25 @@ public struct PetStaticSprite: View {
     }
 
     public var body: some View {
-        Image("pet_\(sprite)")
+        Image("pet_\(PetSprites.base(sprite))")
             .interpolation(.none)
             .resizable()
+            .aspectRatio(100.0 / 104.0, contentMode: .fit)
             .frame(width: size, height: size)
     }
 }
 
-// MARK: - Particle
-
-private struct Particle: Identifiable {
-    let id: UUID
-    var x: CGFloat
-    var y: CGFloat
-    var opacity: Double
-    var scale: CGFloat
-    var isSmoke: Bool
+public enum PetSprites {
+    public static let ids: Set<String> = ["calm", "happy", "hungry", "sleep", "angry", "music"]
+    public static func base(_ s: String) -> String { ids.contains(s) ? s : "calm" }
 }
 
 // MARK: - PetSpriteView
+//
+// Fully time-driven renderer: everything (crossfade, squash, breathing, blinking, eye glow,
+// effects, ember/smoke particles) is a pure function of the TimelineView date, so there are
+// no Timers and no per-frame @State mutations — cheap and safe to have several on screen.
 
-/// Full animated pet sprite renderer.
-/// Two stacked layers crossfade on emotion change.
-/// Idle breathing, blinking, eye glow, particles, effects.
 public struct PetSpriteView: View {
     public let emotion: EmotionDef
     public let size: CGFloat
@@ -113,359 +109,195 @@ public struct PetSpriteView: View {
         self.size = size
     }
 
-    // MARK: State
+    @State private var shown: EmotionDef? = nil
+    @State private var previous: EmotionDef? = nil
+    @State private var switchedAt: Double = 0
+    @State private var seed: Double = Double.random(in: 0...50)
 
-    @State private var previousEmotion: EmotionDef? = nil
-    @State private var crossfadeProgress: Double = 1.0  // 0=previous, 1=current
-
-    @State private var breathScale: CGFloat = 1.0
-    @State private var isBlinking: Bool = false
-    @State private var blinkTimer: Timer? = nil
-    @State private var breathTimer: Timer? = nil
-
-    // Effects
-    @State private var swayAngle: Double = 0
-    @State private var bobAngle: Double = 0
-    @State private var shakeOffset: CGFloat = 0
-    @State private var droop: CGFloat = 0
-    @State private var flickerOpacity: Double = 1.0
-    @State private var eyeGlowOpacity: Double = 0.6
-
-    // Spring on change
-    @State private var springScale: CGFloat = 1.0
-
-    // Particles
-    @State private var particles: [Particle] = []
-    @State private var particleTimer: Timer? = nil
-
-    // ZZZ / notes
-    @State private var floatingChars: [(id: UUID, text: String, offset: CGFloat, opacity: Double)] = []
-    @State private var floatTimer: Timer? = nil
+    private static let fade: Double = 0.45
 
     public var body: some View {
-        ZStack(alignment: .bottom) {
-            particleLayer
-            spriteStack
-            eyeGlowLayer
-            floatLayer
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { ctx in
+            frame(t: ctx.date.timeIntervalSinceReferenceDate)
         }
-        .frame(width: size, height: size)
-        .onChange(of: emotion.id) { _ in
-            handleEmotionChange()
-        }
+        .frame(width: size, height: size * 1.04)
         .onAppear {
-            startBreathTimer()
-            startBlinkTimer()
-            startEffectTimers()
-            startParticleTimer()
+            if shown == nil { shown = emotion }
         }
-        .onDisappear {
-            stopAllTimers()
+        .onChange(of: emotion.id) { _, _ in
+            previous = shown ?? emotion
+            shown = emotion
+            switchedAt = Date().timeIntervalSinceReferenceDate
         }
     }
 
-    // MARK: - Sprite Stack (crossfade)
+    // MARK: frame
 
-    private var spriteStack: some View {
-        ZStack {
-            // Previous emotion (fades out)
-            if let prev = previousEmotion {
-                spriteImage(sprite: prev.sprite, effects: prev.effects)
-                    .opacity(1.0 - crossfadeProgress)
+    @ViewBuilder
+    private func frame(t: Double) -> some View {
+        let cur: EmotionDef = shown ?? emotion
+        let k: Double = min(1, max(0, (t - switchedAt) / Self.fade))
+        let squash: Double = sin(k * .pi)                         // 0 → 1 → 0 during the switch
+        let breath: Double = sin(t * 2 * .pi / 3.0)
+        ZStack(alignment: .bottom) {
+            ParticleLayer(t: t, seed: seed, size: size, heavy: cur.effects.contains("flicker") || cur.sprite == "angry")
+            if let prev = previous, k < 1 {
+                layer(prev, t: t)
+                    .opacity(1 - k)
             }
-
-            // Current emotion (fades in)
-            spriteImage(sprite: emotion.sprite, effects: emotion.effects)
-                .opacity(crossfadeProgress)
+            layer(cur, t: t)
+                .opacity(previous == nil ? 1 : k)
+                .scaleEffect(x: 1 + 0.07 * squash, y: 1 - 0.09 * squash + 0.02 * breath, anchor: .bottom)
+            overlays(cur, t: t)
         }
-        .scaleEffect(x: mirrorX, y: 1, anchor: .bottom)
-        .scaleEffect(CGSize(width: springScale, height: springScale * breathScale), anchor: .bottom)
-        .rotationEffect(.degrees(swayAngle + bobAngle))
-        .offset(x: shakeOffset)
-        .offset(y: droop)
-        .opacity(flickerOpacity)
+        .frame(width: size, height: size * 1.04, alignment: .bottom)
     }
 
-    private func spriteImage(sprite: String, effects: [String]) -> some View {
-        let useBlink = isBlinking
-        let imageName = useBlink ? "pet_\(sprite)_blink" : "pet_\(sprite)"
-        return Image(imageName)
-            .interpolation(.none)
-            .resizable()
-            .frame(width: size, height: size)
-    }
+    private func layer(_ e: EmotionDef, t: Double) -> some View {
+        let fx = Set(e.effects)
+        let base = PetSprites.base(e.sprite)
+        let period: Double = 3.2 + (seed.truncatingRemainder(dividingBy: 1)) * 2.6
+        let blink: Bool = base != "sleep" && (t + seed).truncatingRemainder(dividingBy: period) < 0.13
+        let glow: Double = 0.55 + 0.35 * sin(t * 2.4 + seed)
 
-    // MARK: - Eye glow layer
+        var rot: Double = 0
+        var dx: Double = 0
+        var dy: Double = 0
+        var sy: Double = 1
+        var opacity: Double = 1
+        if fx.contains("sway")     { rot += 4 * sin(t * 1.3) }
+        if fx.contains("headbang") { rot += 8 * sin(t * 9); dy -= 3 * abs(sin(t * 9)) }
+        if fx.contains("bob")      { dy -= 4 * abs(sin(t * 4)) }
+        if fx.contains("shake")    { dx += 2.2 * sin(t * 42) }
+        if fx.contains("stretch")  { sy *= 1 + 0.07 * max(0, sin(t * 0.9)) }
+        if fx.contains("droop")    { sy *= 0.96; dy += Double(size) * 0.015 }
+        if fx.contains("flicker")  { opacity = 0.88 + 0.12 * sin(t * 13) }
+        let mirror: Bool = fx.contains("mirror")
+        let unit = Double(size) / 100.0
 
-    private var eyeGlowLayer: some View {
-        ZStack {
-            // Blurred copy for glow halo
-            Image("pet_\(emotion.sprite)_eyes")
+        return ZStack {
+            Image(blink ? "pet_\(base)_blink" : "pet_\(base)")
                 .interpolation(.none)
                 .resizable()
-                .frame(width: size, height: size)
-                .blur(radius: 3)
-                .blendMode(.plusLighter)
-                .opacity(eyeGlowOpacity * 0.5)
-
-            // Sharp eyes overlay
-            Image("pet_\(emotion.sprite)_eyes")
-                .interpolation(.none)
-                .resizable()
-                .frame(width: size, height: size)
-                .blendMode(.plusLighter)
-                .opacity(isBlinking ? 0 : eyeGlowOpacity)
-        }
-        .scaleEffect(x: mirrorX, y: 1, anchor: .bottom)
-        .offset(x: shakeOffset)
-    }
-
-    // MARK: - Particles
-
-    private var particleLayer: some View {
-        TimelineView(.animation(minimumInterval: 1.0/60.0)) { _ in
-            Canvas { ctx, canvasSize in
-                for p in particles {
-                    let rect = CGRect(
-                        x: p.x * canvasSize.width - 3,
-                        y: p.y * canvasSize.height - 3,
-                        width: 6, height: 6
-                    )
-                    if p.isSmoke {
-                        ctx.opacity = p.opacity * 0.4
-                        ctx.fill(Path(ellipseIn: rect.insetBy(dx: -2, dy: -2)),
-                                 with: .color(.gray.opacity(0.5)))
-                    } else {
-                        ctx.opacity = p.opacity
-                        let col: Color = p.id.uuidString.hasPrefix("a") ? Color(hex: "F2B25C") : Color(hex: "E8894A")
-                        ctx.fill(Path(ellipseIn: rect), with: .color(col))
-                    }
-                }
+            if !blink {
+                Image("pet_\(base)_eyes")
+                    .interpolation(.none)
+                    .resizable()
+                    .blur(radius: 2.5 * unit)
+                    .opacity(glow)
+                    .blendMode(.plusLighter)
+                Image("pet_\(base)_eyes")
+                    .interpolation(.none)
+                    .resizable()
+                    .blendMode(.plusLighter)
             }
         }
-        .frame(width: size, height: size)
+        .aspectRatio(100.0 / 104.0, contentMode: .fit)
+        .frame(width: size, height: size * 1.04)
+        .scaleEffect(x: mirror ? -1 : 1, y: sy, anchor: .bottom)
+        .rotationEffect(.degrees(rot), anchor: .bottom)
+        .offset(x: dx * unit, y: dy * unit)
+        .opacity(opacity)
+    }
+
+    @ViewBuilder
+    private func overlays(_ e: EmotionDef, t: Double) -> some View {
+        let fx = Set(e.effects)
+        let s = size
+        if fx.contains("cap") {
+            CapShape()
+                .fill(DSColors.sageDeep)
+                .overlay(CapShape().stroke(Color.black.opacity(0.6), lineWidth: max(1, s / 90)))
+                .frame(width: s * 0.36, height: s * 0.12)
+                .offset(x: -s * 0.02, y: -s * 0.86)
+        }
+        if fx.contains("bell") {
+            Image(systemName: "bell.fill")
+                .font(.system(size: s * 0.14))
+                .foregroundStyle(DSColors.ember2)
+                .rotationEffect(.degrees(18 * sin(t * 14)), anchor: .top)
+                .offset(x: s * 0.36, y: -s * 0.72)
+        }
+        if fx.contains("zzz") { FloatingGlyphs(t: t, glyphs: ["z", "Z", "z"], size: s, color: DSColors.mute) }
+        if fx.contains("notes") { FloatingGlyphs(t: t, glyphs: ["♪", "♫", "♪"], size: s, color: DSColors.sage) }
+    }
+}
+
+// MARK: - Helpers
+
+private struct CapShape: Shape {
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        // crown
+        p.addRoundedRect(in: CGRect(x: r.minX + r.width * 0.12, y: r.minY, width: r.width * 0.7, height: r.height * 0.75),
+                         cornerSize: CGSize(width: r.height * 0.35, height: r.height * 0.35))
+        // brim
+        p.addRect(CGRect(x: r.minX + r.width * 0.05, y: r.minY + r.height * 0.62, width: r.width * 0.95, height: r.height * 0.3))
+        return p
+    }
+}
+
+private struct FloatingGlyphs: View {
+    let t: Double
+    let glyphs: [String]
+    let size: CGFloat
+    let color: Color
+
+    var body: some View {
+        ZStack {
+            ForEach(0..<glyphs.count, id: \.self) { i in
+                let life: Double = 2.4
+                let ph: Double = ((t + Double(i) * life / Double(glyphs.count)) / life).truncatingRemainder(dividingBy: 1)
+                Text(glyphs[i])
+                    .font(.system(size: size * (0.1 + 0.04 * Double(i)), weight: .semibold, design: .rounded))
+                    .foregroundStyle(color)
+                    .opacity(ph < 0.15 ? ph / 0.15 : 1 - ph)
+                    .offset(x: size * (0.22 + 0.12 * ph + 0.04 * sin(ph * 6)), y: -size * (0.7 + 0.35 * ph))
+            }
+        }
+    }
+}
+
+private struct ParticleLayer: View {
+    let t: Double
+    let seed: Double
+    let size: CGFloat
+    let heavy: Bool
+
+    private func h(_ i: Int, _ salt: Double) -> Double {
+        let v = sin(Double(i) * 12.9898 + salt * 78.233 + seed) * 43758.5453
+        return v - v.rounded(.down)
+    }
+
+    var body: some View {
+        Canvas { ctx, sz in
+            let w = Double(sz.width), hgt = Double(sz.height)
+            // smoke puffs (soft, dark)
+            var smoke = ctx
+            smoke.addFilter(.blur(radius: w * 0.05))
+            for i in 0..<6 {
+                let life = 3.5 + 1.5 * h(i, 1)
+                let ph = ((t + life * h(i, 2)) / life).truncatingRemainder(dividingBy: 1)
+                let x = w * (0.2 + 0.6 * h(i, 3)) + w * 0.05 * sin(t * 0.8 + Double(i))
+                let y = hgt * (0.95 - 0.55 * ph)
+                let r = w * (0.07 + 0.06 * ph)
+                let a = 0.35 * sin(ph * .pi)
+                smoke.fill(Path(ellipseIn: CGRect(x: x - r, y: y - r, width: r * 2, height: r * 2)),
+                           with: .color(Color.black.opacity(a)))
+            }
+            // embers (small, bright)
+            let n = heavy ? 18 : 11
+            for i in 0..<n {
+                let life = 1.8 + 1.4 * h(i, 4)
+                let ph = ((t + life * h(i, 5)) / life).truncatingRemainder(dividingBy: 1)
+                let x = w * (0.15 + 0.7 * h(i, 6)) + w * 0.03 * sin(t * 2 + Double(i))
+                let y = hgt * (0.92 - 0.75 * ph)
+                let r = max(1.0, w * 0.012 * (1 - ph * 0.5))
+                let col = h(i, 7) > 0.5 ? DSColors.ember : DSColors.ember2
+                ctx.fill(Path(CGRect(x: x, y: y, width: r * 1.6, height: r * 1.6)),
+                         with: .color(col.opacity(0.9 * (1 - ph))))
+            }
+        }
         .allowsHitTesting(false)
-    }
-
-    // MARK: - Floating chars (ZZZ / notes)
-
-    private var floatLayer: some View {
-        ZStack(alignment: .topTrailing) {
-            ForEach(floatingChars, id: \.id) { item in
-                Text(item.text)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color(hex: "9AA59C"))
-                    .offset(x: 4, y: item.offset)
-                    .opacity(item.opacity)
-            }
-        }
-        .frame(width: size, height: size, alignment: .topTrailing)
-        .allowsHitTesting(false)
-    }
-
-    // MARK: - Effect helpers
-
-    private var mirrorX: CGFloat {
-        emotion.effects.contains("mirror") ? -1 : 1
-    }
-
-    // MARK: - Animation on emotion change
-
-    private func handleEmotionChange() {
-        previousEmotion = emotion
-        crossfadeProgress = 0
-
-        // Squash-and-stretch spring
-        springScale = 0.9
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-            springScale = 1.08
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
-                springScale = 1.0
-            }
-        }
-
-        withAnimation(.easeInOut(duration: 0.45)) {
-            crossfadeProgress = 1.0
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            previousEmotion = nil
-        }
-
-        stopAllTimers()
-        startBreathTimer()
-        startBlinkTimer()
-        startEffectTimers()
-        startParticleTimer()
-    }
-
-    // MARK: - Timers
-
-    private func startBreathTimer() {
-        breathTimer?.invalidate()
-        var phase: Double = 0
-        breathTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { _ in
-            phase += (2 * .pi) / (3.0 * 30.0)
-            let v = 1.0 + 0.02 * sin(phase)
-            DispatchQueue.main.async {
-                breathScale = CGFloat(v)
-            }
-        }
-    }
-
-    private func startBlinkTimer() {
-        blinkTimer?.invalidate()
-        scheduleBlink()
-    }
-
-    private func scheduleBlink() {
-        let interval = Double.random(in: 2.5...6.0)
-        blinkTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { [self] _ in
-            DispatchQueue.main.async {
-                isBlinking = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-                    isBlinking = false
-                    scheduleBlink()
-                }
-            }
-        }
-    }
-
-    private func startEffectTimers() {
-        let effects = emotion.effects
-
-        // Sway
-        if effects.contains("sway") {
-            var swayPhase: Double = 0
-            Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { _ in
-                swayPhase += (2 * .pi) / (4.0 * 30.0)
-                DispatchQueue.main.async { swayAngle = 5.0 * sin(swayPhase) }
-            }
-        } else {
-            withAnimation(.easeOut(duration: 0.3)) { swayAngle = 0 }
-        }
-
-        // Bob / headbang
-        if effects.contains("headbang") || effects.contains("bob") {
-            let speed = effects.contains("headbang") ? 0.5 : 2.0
-            var bobPhase: Double = 0
-            Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { _ in
-                bobPhase += (2 * .pi) / (speed * 30.0)
-                let amp = effects.contains("headbang") ? 8.0 : 4.0
-                DispatchQueue.main.async { bobAngle = amp * sin(bobPhase) }
-            }
-        } else {
-            withAnimation(.easeOut(duration: 0.3)) { bobAngle = 0 }
-        }
-
-        // Shake
-        if effects.contains("shake") {
-            var shakePhase: Double = 0
-            Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { _ in
-                shakePhase += (2 * .pi) / (0.3 * 30.0)
-                DispatchQueue.main.async { shakeOffset = 3.0 * CGFloat(sin(shakePhase)) }
-            }
-        } else {
-            withAnimation(.easeOut(duration: 0.3)) { shakeOffset = 0 }
-        }
-
-        // Droop
-        if effects.contains("droop") {
-            withAnimation(.easeIn(duration: 0.4)) { droop = 4 }
-        } else {
-            withAnimation(.easeOut(duration: 0.3)) { droop = 0 }
-        }
-
-        // Flicker
-        if effects.contains("flicker") {
-            var flickPhase: Double = 0
-            Timer.scheduledTimer(withTimeInterval: 1.0 / 20.0, repeats: true) { _ in
-                flickPhase += 1
-                let v = flickPhase.truncatingRemainder(dividingBy: 5) == 0
-                    ? Double.random(in: 0.6...1.0) : 1.0
-                DispatchQueue.main.async { flickerOpacity = v }
-            }
-        } else {
-            flickerOpacity = 1.0
-        }
-
-        // Eye glow pulse
-        var glowPhase: Double = 0
-        Timer.scheduledTimer(withTimeInterval: 1.0 / 20.0, repeats: true) { _ in
-            glowPhase += (2 * .pi) / (2.5 * 20.0)
-            let v = 0.4 + 0.3 * sin(glowPhase)
-            DispatchQueue.main.async { eyeGlowOpacity = v }
-        }
-
-        // ZZZ
-        if effects.contains("zzz") {
-            startFloatTimer(chars: ["z", "zz", "zzz"])
-        }
-
-        // Notes
-        if effects.contains("notes") {
-            startFloatTimer(chars: ["♪", "♪♪"])
-        }
-    }
-
-    private func startParticleTimer() {
-        particleTimer?.invalidate()
-        // Spawn ember dots and smoke
-        particleTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { _ in
-            DispatchQueue.main.async {
-                // Remove dead particles
-                particles.removeAll { $0.opacity <= 0.01 }
-                // Limit
-                guard particles.count < 20 else { return }
-                let isSmoke = Double.random(in: 0...1) < 0.3
-                let p = Particle(
-                    id: UUID(),
-                    x: Double.random(in: 0.2...0.8),
-                    y: 0.85,
-                    opacity: Double.random(in: 0.5...0.9),
-                    scale: CGFloat.random(in: 0.5...1.0),
-                    isSmoke: isSmoke
-                )
-                particles.append(p)
-
-                // Animate rise and fade
-                withAnimation(.linear(duration: Double.random(in: 1.5...3.0))) {
-                    if let idx = particles.firstIndex(where: { $0.id == p.id }) {
-                        particles[idx].y = Double.random(in: 0.1...0.5)
-                        particles[idx].opacity = 0
-                    }
-                }
-            }
-        }
-    }
-
-    private func startFloatTimer(chars: [String]) {
-        floatTimer?.invalidate()
-        floatTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
-            DispatchQueue.main.async {
-                floatingChars.removeAll { $0.opacity <= 0.01 }
-                guard floatingChars.count < 3, let ch = chars.randomElement() else { return }
-                let entry = (id: UUID(), text: ch, offset: CGFloat(0), opacity: Double(1.0))
-                floatingChars.append(entry)
-                withAnimation(.easeOut(duration: 2.0)) {
-                    if let idx = floatingChars.firstIndex(where: { $0.id == entry.id }) {
-                        floatingChars[idx].offset = -30
-                        floatingChars[idx].opacity = 0
-                    }
-                }
-            }
-        }
-    }
-
-    private func stopAllTimers() {
-        breathTimer?.invalidate()
-        blinkTimer?.invalidate()
-        particleTimer?.invalidate()
-        floatTimer?.invalidate()
-        breathTimer = nil
-        blinkTimer = nil
-        particleTimer = nil
-        floatTimer = nil
     }
 }
