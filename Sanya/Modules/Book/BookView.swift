@@ -9,6 +9,9 @@ final class WebHolder: NSObject, ObservableObject, WKScriptMessageHandler, WKNav
     @Published var loading = true
     @Published var canGoBack = false
     @Published var failed: String?
+    @Published var progress: Double = 0
+    @Published var everLoaded = false
+    private var progressObs: NSKeyValueObservation?
 
     override init() {
         let config = WKWebViewConfiguration()
@@ -23,7 +26,21 @@ final class WebHolder: NSObject, ObservableObject, WKScriptMessageHandler, WKNav
         webView.isOpaque = false
         webView.backgroundColor = .black
         webView.scrollView.backgroundColor = .black
+        // Smooth progress line + pull-to-refresh
+        progressObs = webView.observe(\.estimatedProgress, options: [.new]) { [weak self] wv, _ in
+            DispatchQueue.main.async { self?.progress = wv.estimatedProgress }
+        }
+        let refresh = UIRefreshControl()
+        refresh.tintColor = UIColor(red: 0.66, green: 0.77, blue: 0.63, alpha: 1)
+        refresh.addTarget(self, action: #selector(pulled(_:)), for: .valueChanged)
+        webView.scrollView.refreshControl = refresh
         goHome()
+    }
+
+    @objc private func pulled(_ sender: UIRefreshControl) {
+        Haptics.soft()
+        webView.reload()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { sender.endRefreshing() }
     }
 
     func goHome() {
@@ -37,7 +54,7 @@ final class WebHolder: NSObject, ObservableObject, WKScriptMessageHandler, WKNav
     }
 
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) { loading = true; failed = nil }
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) { loading = false; canGoBack = webView.canGoBack }
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) { loading = false; everLoaded = true; canGoBack = webView.canGoBack }
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) { loading = false; failed = error.localizedDescription }
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         loading = false; failed = error.localizedDescription
@@ -56,12 +73,32 @@ struct BookView: View {
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            WebContainer(webView: web.webView).ignoresSafeArea(edges: .bottom)
-            if web.loading {
-                VStack(spacing: 12) {
-                    ProgressView().tint(.white)
-                    Text("Открываю Книгу Мастера…").font(.footnote).foregroundStyle(.secondary)
+            WebContainer(webView: web.webView)
+                .ignoresSafeArea(edges: .bottom)
+                .opacity(web.everLoaded ? 1 : 0)
+                .scaleEffect(web.everLoaded ? 1 : 0.98)
+                .animation(.spring(response: 0.5, dampingFraction: 0.9), value: web.everLoaded)
+            if web.loading && !web.everLoaded {
+                VStack(spacing: 14) {
+                    Image(systemName: "book.closed")
+                        .font(.system(size: 34, weight: .light))
+                        .foregroundStyle(DS.Color.sage)
+                        .symbolEffect(.pulse)
+                    Text("Открываю Книгу Мастера…").font(DS.Font.caption).foregroundStyle(DS.Color.mute)
                 }
+                .transition(.opacity)
+            }
+            VStack {
+                if web.loading {
+                    GeometryReader { g in
+                        Capsule().fill(DS.Color.sage)
+                            .frame(width: max(8, g.size.width * CGFloat(web.progress)), height: 2)
+                            .animation(.easeOut(duration: 0.25), value: web.progress)
+                    }
+                    .frame(height: 2)
+                    .transition(.opacity)
+                }
+                Spacer()
             }
             if let f = web.failed {
                 VStack(spacing: 12) {
@@ -86,18 +123,18 @@ struct BookView: View {
         .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
-                Button { web.webView.goBack() } label: {
+                Button { Haptics.tap(); web.webView.goBack() } label: {
                     Image(systemName: "chevron.backward.circle")
                         .foregroundStyle(web.canGoBack ? DS.Color.ink : DS.Color.dim)
                 }
                 .disabled(!web.canGoBack)
 
-                Button { web.goHome() } label: {
+                Button { Haptics.tap(); web.goHome() } label: {
                     Image(systemName: "house")
                         .foregroundStyle(DS.Color.ink)
                 }
 
-                Button { web.webView.reload() } label: {
+                Button { Haptics.tap(); web.webView.reload() } label: {
                     Image(systemName: "arrow.clockwise")
                         .foregroundStyle(DS.Color.ink)
                 }
