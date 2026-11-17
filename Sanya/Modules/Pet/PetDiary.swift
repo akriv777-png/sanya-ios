@@ -274,7 +274,7 @@ final class PetDiary: ObservableObject {
 
             Task { @MainActor in
                 let lines = await LocalDiaryGenerator().generate(
-                    stats: stats, petName: PetStore.shared.name, bondLevel: .shadow
+                    stats: stats, petName: PetStore.shared.name, bondLevel: .svoy
                 )
                 let entry = DiaryEntry(id: UUID(), weekStart: weekStart, weekEnd: weekEnd,
                                        lines: lines, generatedAt: Date())

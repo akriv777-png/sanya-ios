@@ -40,7 +40,7 @@ public struct PetOverlayView: View {
                     // Bubble (above pet)
                     if let bubble = engine.bubbleText {
                         bubbleView(bubble)
-                            .offset(petXOffset(geo) + CGSize(width: 0, height: -(petSize + 36)))
+                            .offset(x: petXOffset(geo).width, y: petXOffset(geo).height - (petSize + 36))
                             .allowsHitTesting(false)
                             .transition(.opacity.combined(with: .move(edge: .bottom)))
                     }

@@ -28,7 +28,7 @@ jobs:
           set -o pipefail
           xcodebuild build-for-testing -project Sanya.xcodeproj -scheme Sanya \
             -destination "id=$UDID" -derivedDataPath build | tee build.log | grep -E "error:|warning: unre|BUILD" || true
-          test -d build/Build/Products/Debug-iphonesimulator/Sanya.app || { grep -B2 -A6 "error:" build.log | head -150; exit 1; }
+          grep -q "TEST BUILD SUCCEEDED" build.log || { grep -B2 -A6 "error:" build.log | head -200; exit 1; }
       - name: UI tour with video recording
         run: |
           mkdir -p out/videos out/shots
@@ -70,7 +70,7 @@ jobs:
             -destination 'generic/platform=iOS' -derivedDataPath build-ios \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" | tee ipa.log | grep -E "error:|BUILD" || true
           APP=build-ios/Build/Products/Release-iphoneos/Sanya.app
-          test -d "$APP" || exit 1
+          grep -q "BUILD SUCCEEDED" ipa.log || { grep -A6 "error:" ipa.log | head -100; exit 1; }
           mkdir -p Payload out && cp -R "$APP" Payload/
           zip -qry out/Sanya-v0.2-unsigned.ipa Payload
           ls -la out
