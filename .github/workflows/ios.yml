@@ -29,20 +29,14 @@ jobs:
           xcodebuild build-for-testing -project Sanya.xcodeproj -scheme Sanya \
             -destination "id=$UDID" -derivedDataPath build | tee build.log | grep -E "error:|warning: unre|BUILD" || true
           grep -q "TEST BUILD SUCCEEDED" build.log || { grep -B2 -A6 "error:" build.log | head -200; exit 1; }
-      - name: UI tour with video recording
+      - name: UI tours (screenshots only)
         run: |
           mkdir -p out/videos out/shots
           for T in testTour1 testTour2 testTour3; do
-            xcrun simctl io "$UDID" recordVideo --codec=h264 --force "out/videos/$T.mp4" &
-            REC=$!
-            sleep 3
             TEST_RUNNER_SHOT_DIR="$PWD/out/shots" xcodebuild test-without-building -project Sanya.xcodeproj -scheme Sanya \
               -destination "id=$UDID" -derivedDataPath build \
               -only-testing:SanyaUITests/SanyaUITests/$T -resultBundlePath "out/$T.xcresult" > "out/$T.log" 2>&1 \
               || { echo "FAILED $T" >> out/failures.txt; grep -E "error|fail" "out/$T.log" | head -40; }
-            sleep 1
-            kill -INT $REC || true
-            wait $REC || true
           done
           ls -la out/videos out/shots
           mkdir -p out/crashes && cp ~/Library/Logs/DiagnosticReports/Sanya* out/crashes/ 2>/dev/null || true
