@@ -114,3 +114,7 @@ public struct PetOverlayView: View {
             )
     }
 }
+
+extension CGSize {
+    static func + (l: CGSize, r: CGSize) -> CGSize { CGSize(width: l.width + r.width, height: l.height + r.height) }
+}
