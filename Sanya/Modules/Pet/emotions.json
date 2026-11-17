@@ -1,0 +1,313 @@
+[
+  {
+    "id": "calm",
+    "name": "Спокоен",
+    "sprite": "calm",
+    "effects": [],
+    "priority": 10,
+    "triggers": [
+      { "kind": "random", "chance": 1.0 }
+    ],
+    "minDuration": 5.0,
+    "bubble": ["...", "мм.", "тихо.", "норм."]
+  },
+  {
+    "id": "happy",
+    "name": "Доволен",
+    "sprite": "happy",
+    "effects": [],
+    "priority": 30,
+    "triggers": [
+      { "kind": "stat", "stat": "mood", "above": 0.75 },
+      { "kind": "stat", "stat": "satiety", "above": 0.6 }
+    ],
+    "minDuration": 4.0,
+    "bubble": ["хорошо.", "неплохо.", "ладно.", "пойдёт.", "тепло."]
+  },
+  {
+    "id": "hungry",
+    "name": "Голодный",
+    "sprite": "hungry",
+    "effects": [],
+    "priority": 60,
+    "triggers": [
+      { "kind": "stat", "stat": "satiety", "below": 0.3 }
+    ],
+    "minDuration": 3.0,
+    "bubble": ["жрать хочу.", "ну??", "корми.", "пусто внутри.", "намёк понял?"]
+  },
+  {
+    "id": "sleep",
+    "name": "Спит",
+    "sprite": "sleep",
+    "effects": ["zzz"],
+    "priority": 50,
+    "triggers": [
+      { "kind": "stat", "stat": "energy", "below": 0.15 },
+      { "kind": "time", "fromHour": 0, "toHour": 7 }
+    ],
+    "minDuration": 10.0,
+    "bubble": ["z", "zz", "zzz"]
+  },
+  {
+    "id": "angry",
+    "name": "Злой",
+    "sprite": "angry",
+    "effects": ["shake"],
+    "priority": 55,
+    "triggers": [
+      { "kind": "stat", "stat": "mood", "below": 0.2 }
+    ],
+    "minDuration": 3.0,
+    "bubble": ["это что вообще?", "стоп.", "не.", "уйди.", "сейчас укушу."]
+  },
+  {
+    "id": "music",
+    "name": "Слушает",
+    "sprite": "music",
+    "effects": ["bob"],
+    "priority": 40,
+    "triggers": [
+      { "kind": "event", "event": "trackStarted" }
+    ],
+    "minDuration": 6.0,
+    "bubble": ["♪", "♪♪", "норм трек.", "громче.", "качает."]
+  },
+  {
+    "id": "bored",
+    "name": "Скучает",
+    "sprite": "calm",
+    "effects": ["sway"],
+    "priority": 15,
+    "triggers": [
+      { "kind": "stat", "stat": "mood", "below": 0.45 },
+      { "kind": "stat", "stat": "satiety", "above": 0.4 }
+    ],
+    "minDuration": 4.0,
+    "bubble": ["...", "и?", "нечего делать.", "жизнь.", "пустота."]
+  },
+  {
+    "id": "yawn",
+    "name": "Зевает",
+    "sprite": "sleep",
+    "effects": ["stretch"],
+    "priority": 20,
+    "triggers": [
+      { "kind": "stat", "stat": "energy", "below": 0.4 },
+      { "kind": "stat", "stat": "energy", "above": 0.14 }
+    ],
+    "minDuration": 2.0,
+    "bubble": ["о...", "зе-ва-ю.", "устал немного.", "потяну-у-усь."]
+  },
+  {
+    "id": "mischief",
+    "name": "Вредничает",
+    "sprite": "calm",
+    "effects": ["mirror", "flicker"],
+    "priority": 25,
+    "triggers": [
+      { "kind": "stat", "stat": "bond", "above": 0.4 },
+      { "kind": "random", "chance": 0.15 }
+    ],
+    "minDuration": 3.0,
+    "bubble": ["хе.", "а что будет если...", "просто проверяю.", "ничего не трогал."]
+  },
+  {
+    "id": "tired",
+    "name": "Устал",
+    "sprite": "sleep",
+    "effects": ["droop"],
+    "priority": 35,
+    "triggers": [
+      { "kind": "event", "event": "shiftEnded" }
+    ],
+    "minDuration": 8.0,
+    "bubble": ["лечь бы.", "смена кончилась?", "жить не хочу.", "спать."]
+  },
+  {
+    "id": "headbang",
+    "name": "Качает",
+    "sprite": "music",
+    "effects": ["headbang"],
+    "priority": 45,
+    "triggers": [
+      { "kind": "event", "event": "trackStarted" },
+      { "kind": "stat", "stat": "mood", "above": 0.6 }
+    ],
+    "minDuration": 5.0,
+    "bubble": ["♪♪♪", "ГРОМЧЕ.", "вот это да.", "трясу башкой."]
+  },
+  {
+    "id": "worker",
+    "name": "На смену",
+    "sprite": "calm",
+    "effects": ["cap"],
+    "priority": 50,
+    "triggers": [
+      { "kind": "event", "event": "shiftUpcoming" }
+    ],
+    "minDuration": 10.0,
+    "bubble": ["кепку надел.", "идёшь?", "не опаздывай.", "смена скоро."]
+  },
+  {
+    "id": "bell",
+    "name": "Дзынь",
+    "sprite": "happy",
+    "effects": ["bell"],
+    "priority": 70,
+    "triggers": [
+      { "kind": "event", "event": "timerDone" }
+    ],
+    "minDuration": 4.0,
+    "bubble": ["ДЗЫНЬ.", "таймер.", "время.", "слышишь?"]
+  },
+  {
+    "id": "grumble",
+    "name": "Ворчит",
+    "sprite": "angry",
+    "effects": ["shake"],
+    "priority": 65,
+    "triggers": [
+      { "kind": "event", "event": "counterAdded" }
+    ],
+    "minDuration": 5.0,
+    "bubble": ["опять баночка?", "ты серьёзно?", "третья за день.", "ладно, твои проблемы."]
+  },
+  {
+    "id": "watches",
+    "name": "Следит",
+    "sprite": "calm",
+    "effects": [],
+    "priority": 60,
+    "triggers": [
+      { "kind": "event", "event": "vaultOpened" }
+    ],
+    "minDuration": 3.0,
+    "bubble": ["вижу.", "ага.", "интересно.", "тайны?"]
+  },
+  {
+    "id": "suspicion",
+    "name": "Подозревает",
+    "sprite": "angry",
+    "effects": ["shake"],
+    "priority": 68,
+    "triggers": [
+      { "kind": "event", "event": "vaultWrongPIN" }
+    ],
+    "minDuration": 4.0,
+    "bubble": ["это ты?", "не тот пин.", "кто там?", "подозрительно."]
+  },
+  {
+    "id": "chat",
+    "name": "Слушает",
+    "sprite": "calm",
+    "effects": ["bob"],
+    "priority": 22,
+    "triggers": [
+      { "kind": "event", "event": "chatMessage" },
+      { "kind": "random", "chance": 0.3 }
+    ],
+    "minDuration": 2.0,
+    "bubble": ["мм?", "слышу.", "окей.", "понял."]
+  },
+  {
+    "id": "curious",
+    "name": "Любопытный",
+    "sprite": "happy",
+    "effects": ["bob"],
+    "priority": 18,
+    "triggers": [
+      { "kind": "event", "event": "moduleOpened" },
+      { "kind": "random", "chance": 0.2 }
+    ],
+    "minDuration": 3.0,
+    "bubble": ["что там?", "о.", "покажи.", "интересно же."]
+  },
+  {
+    "id": "fed",
+    "name": "Поел",
+    "sprite": "happy",
+    "effects": [],
+    "priority": 75,
+    "triggers": [
+      { "kind": "event", "event": "petFed" }
+    ],
+    "minDuration": 4.0,
+    "bubble": ["вкусно.", "спасибо что ли.", "пойдёт.", "норм кормёжка."]
+  },
+  {
+    "id": "played",
+    "name": "Поиграл",
+    "sprite": "happy",
+    "effects": ["bob"],
+    "priority": 72,
+    "triggers": [
+      { "kind": "event", "event": "petPlayed" }
+    ],
+    "minDuration": 4.0,
+    "bubble": ["весело!", "ладно, зачёт.", "ещё!", "прикольно было."]
+  },
+  {
+    "id": "petted",
+    "name": "Почёсан",
+    "sprite": "happy",
+    "effects": ["sway"],
+    "priority": 73,
+    "triggers": [
+      { "kind": "event", "event": "petPetted" }
+    ],
+    "minDuration": 3.0,
+    "bubble": ["мм...", "ладно.", "можно ещё.", "никому не говори."]
+  },
+  {
+    "id": "energized",
+    "name": "Нажрался",
+    "sprite": "music",
+    "effects": ["headbang", "flicker"],
+    "priority": 62,
+    "triggers": [
+      { "kind": "event", "event": "petFed" },
+      { "kind": "stat", "stat": "energy", "above": 0.85 }
+    ],
+    "minDuration": 5.0,
+    "bubble": ["ВСЕХ ВИЖУ.", "энергетик работает.", "вжух.", "не остановить."]
+  },
+  {
+    "id": "midnight",
+    "name": "Ночной",
+    "sprite": "calm",
+    "effects": ["sway"],
+    "priority": 28,
+    "triggers": [
+      { "kind": "time", "fromHour": 23, "toHour": 24 },
+      { "kind": "stat", "stat": "energy", "above": 0.14 }
+    ],
+    "minDuration": 6.0,
+    "bubble": ["поздно.", "спать бы.", "ночь.", "тишина."]
+  },
+  {
+    "id": "bonded",
+    "name": "Привязан",
+    "sprite": "happy",
+    "effects": ["sway"],
+    "priority": 32,
+    "triggers": [
+      { "kind": "bond", "above": 0.7 },
+      { "kind": "stat", "stat": "mood", "above": 0.5 }
+    ],
+    "minDuration": 5.0,
+    "bubble": ["рядом.", "никуда не ухожу.", "мы команда.", "странно но окей."]
+  },
+  {
+    "id": "shift_on",
+    "name": "Смена идёт",
+    "sprite": "calm",
+    "effects": ["cap"],
+    "priority": 52,
+    "triggers": [
+      { "kind": "event", "event": "shiftStarted" }
+    ],
+    "minDuration": 8.0,
+    "bubble": ["пошёл.", "держись.", "фри-ти-юр.", "удачи что ли."]
+  }
+]

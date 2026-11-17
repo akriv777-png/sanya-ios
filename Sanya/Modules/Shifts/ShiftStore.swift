@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 import UIKit
 import Vision
 import UserNotifications
@@ -39,6 +40,28 @@ final class ShiftStore: ObservableObject {
         var s = s
         if s.end <= s.start { s.end = s.start.addingTimeInterval(3600) }
         if let i = shifts.firstIndex(where: { $0.id == s.id }) { shifts[i] = s } else { shifts.append(s) }
+    }
+
+    func showOnIsland(_ s: Shift) {
+        let now = Date()
+        let ongoing = s.start <= now
+        if ongoing {
+            EventBus.shared.emit(.shiftStarted)
+        } else {
+            let mins = Int(s.start.timeIntervalSinceNow / 60)
+            if mins <= 120 { EventBus.shared.emit(.shiftUpcoming(minutes: mins)) }
+        }
+        let petEmo = EmotionRegistry.baseSprite(for: PetEngine.shared.currentEmotion.id)
+        LiveActivityManager.shared.start(kind: "shift", symbol: "fork.knife", state: .init(
+            title: ongoing ? "До конца смены" : "До начала смены",
+            subtitle: "\(Fmt.time(s.start))–\(Fmt.time(s.end)) · \(s.note)",
+            start: ongoing ? s.start : now, end: ongoing ? s.end : s.start,
+            colorHex: "FFB020", isPlaying: true, progress: 0,
+            petEmotion: petEmo,
+            petSatiety: PetStore.shared.stats.satiety,
+            petEnergy: PetStore.shared.stats.energy,
+            petMood: PetStore.shared.stats.mood
+        ))
     }
 
     func delete(_ id: UUID) { shifts.removeAll { $0.id == id } }

@@ -1,20 +1,58 @@
 import ActivityKit
 import SwiftUI
 
-/// Одна общая Live Activity на всё приложение: таймер, смена или плеер.
-struct SanyaActivityAttributes: ActivityAttributes {
+/// Одна общая Live Activity на всё приложение: таймер, смена, плеер или питомец.
+public struct SanyaActivityAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
-        var title: String
-        var subtitle: String
-        var start: Date
-        var end: Date
-        var colorHex: String
-        var isPlaying: Bool
-        var progress: Double
+        public var title: String
+        public var subtitle: String
+        public var start: Date
+        public var end: Date
+        public var colorHex: String
+        public var isPlaying: Bool
+        public var progress: Double
+
+        // Pet integration fields (Plan C10)
+        public var petEmotion: String?
+        public var petSatiety: Double?
+        public var petEnergy: Double?
+        public var petMood: Double?
+
+        public init(
+            title: String,
+            subtitle: String,
+            start: Date,
+            end: Date,
+            colorHex: String,
+            isPlaying: Bool,
+            progress: Double,
+            petEmotion: String? = nil,
+            petSatiety: Double? = nil,
+            petEnergy: Double? = nil,
+            petMood: Double? = nil
+        ) {
+            self.title = title
+            self.subtitle = subtitle
+            self.start = start
+            self.end = end
+            self.colorHex = colorHex
+            self.isPlaying = isPlaying
+            self.progress = progress
+            self.petEmotion = petEmotion
+            self.petSatiety = petSatiety
+            self.petEnergy = petEnergy
+            self.petMood = petMood
+        }
     }
-    /// "timer" | "shift" | "player"
-    var kind: String
-    var symbol: String
+
+    /// "timer" | "shift" | "player" | "pet"
+    public var kind: String
+    public var symbol: String
+
+    public init(kind: String, symbol: String) {
+        self.kind = kind
+        self.symbol = symbol
+    }
 }
 
 extension Color {
@@ -28,14 +66,22 @@ extension Color {
 }
 
 /// Столбики эквалайзера. Высоты зависят от seed — при каждом обновлении активности они плавно меняются.
-struct EqualizerBars: View {
-    let tint: Color
-    let playing: Bool
-    let seed: Int
-    let height: CGFloat
-    var count: Int = 5
+public struct EqualizerBars: View {
+    public let tint: Color
+    public let playing: Bool
+    public let seed: Int
+    public let height: CGFloat
+    public var count: Int = 5
 
-    var body: some View {
+    public init(tint: Color, playing: Bool, seed: Int, height: CGFloat, count: Int = 5) {
+        self.tint = tint
+        self.playing = playing
+        self.seed = seed
+        self.height = height
+        self.count = count
+    }
+
+    public var body: some View {
         HStack(alignment: .center, spacing: 2) {
             ForEach(0..<count, id: \.self) { i in
                 let v: Double = playing ? 0.3 + 0.7 * abs(sin(Double(seed) * 0.37 + Double(i) * 1.3)) : 0.2

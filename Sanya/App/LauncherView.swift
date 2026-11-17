@@ -1,148 +1,381 @@
 import SwiftUI
 
 struct LauncherView: View {
-    @ObservedObject var router = Router.shared
-    @ObservedObject var shifts = ShiftStore.shared
-    @ObservedObject var player = PlayerModel.shared
-    @ObservedObject var timers = TimerStore.shared
+    @ObservedObject var router  = Router.shared
+    @ObservedObject var shifts  = ShiftStore.shared
+    @ObservedObject var player  = PlayerModel.shared
+    @ObservedObject var timers  = TimerStore.shared
     @State private var showSettings = false
-    private let cols = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
+
+    // 4-column grid for modules
+    private let cols = Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
 
     var body: some View {
         NavigationStack(path: $router.path) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    header
-                    if let next = shifts.nextShift {
-                        Button { router.go(.shifts) } label: { NextShiftCard(shift: next) }.buttonStyle(.plain)
+            ZStack(alignment: .bottom) {
+                // Atmosphere background fills everything
+                AtmosphereBackground()
+                    .ignoresSafeArea()
+
+                // Main scrollable content
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 20) {
+                        // ── greeting + date ──────────────────────────────
+                        headerSection
+                            .padding(.top, 60)
+
+                        // ── search field ─────────────────────────────────
+                        searchBar
+
+                        // ── widget row: next shift + now playing ─────────
+                        widgetRow
+
+                        // ── Modules grid ─────────────────────────────────
+                        SectionHeader("Модули")
+                            .padding(.top, 4)
+
+                        LazyVGrid(columns: cols, spacing: 10) {
+                            ForEach(Modules.ready) { m in tile(m) }
+                        }
+
+                        // ── Soon ─────────────────────────────────────────
+                        SectionHeader("Скоро", trailing:
+                            Text("\(Modules.soon.count)")
+                                .font(DS.Font.caption)
+                                .foregroundStyle(DS.Color.mute)
+                        )
+                        .padding(.top, 6)
+
+                        LazyVGrid(columns: cols, spacing: 10) {
+                            ForEach(Modules.soon) { m in tile(m) }
+                        }
+
+                        // Bottom padding so dock doesn't overlap content
+                        Spacer().frame(height: 100)
                     }
-                    if let t = player.current {
-                        Button { router.go(.player) } label: { NowPlayingCard(track: t, playing: player.isPlaying) }.buttonStyle(.plain)
-                    }
-                    if let t = timers.running.first {
-                        Button { router.go(.timers) } label: { TimerMiniCard(timer: t) }.buttonStyle(.plain)
-                    }
-                    Text("Модули").font(.title3.bold())
-                    LazyVGrid(columns: cols, spacing: 12) {
-                        ForEach(Modules.ready) { m in tile(m) }
-                    }
-                    HStack {
-                        Text("Скоро").font(.title3.bold())
-                        Spacer()
-                        Text("\(Modules.soon.count) модулей").font(.caption).foregroundStyle(.secondary)
-                    }
-                    LazyVGrid(columns: cols, spacing: 12) {
-                        ForEach(Modules.soon) { m in tile(m) }
-                    }
+                    .padding(.horizontal, 18)
                 }
-                .padding()
+
+                // ── Glass dock ───────────────────────────────────────────
+                dock
             }
-            .background(Theme.background)
-            .navigationDestination(for: ModuleID.self) { ModuleScreen(id: $0) }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { showSettings = true } label: { Image(systemName: "gearshape.fill") }
-                        .accessibilityIdentifier("settings")
-                }
+            .navigationBarHidden(true)
+            .navigationDestination(for: ModuleID.self) { id in
+                ModuleScreen(id: id)
+                    .onAppear { EventBus.shared.emit(.moduleOpened(id.rawValue)) }
             }
-            .sheet(isPresented: $showSettings) { NavigationStack { AssistantSettingsView() } }
+            .sheet(isPresented: $showSettings) {
+                NavigationStack { SettingsView() }
+            }
         }
     }
+
+    // MARK: – Header
+
+    private var headerSection: some View {
+        TimelineView(.periodic(from: .now, by: 30)) { ctx in
+            VStack(alignment: .leading, spacing: 6) {
+                Text(greeting(ctx.date))
+                    .font(DS.Font.display(40))
+                    .foregroundStyle(DS.Color.ink)
+                Text(Fmt.longDay(ctx.date).capitalized)
+                    .font(DS.Font.label)
+                    .tracking(2)
+                    .foregroundStyle(DS.Color.mute)
+                    .textCase(.uppercase)
+            }
+        }
+    }
+
+    // MARK: – Search bar
+
+    private var searchBar: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 15, weight: .light))
+                .foregroundStyle(DS.Color.mute)
+            Text("Поиск…")
+                .font(DS.Font.body)
+                .foregroundStyle(DS.Color.mute)
+            Spacer()
+        }
+        .padding(.horizontal, 18)
+        .frame(height: 50)
+        .background(.ultraThinMaterial, in: Capsule(style: .continuous))
+        .overlay(Capsule(style: .continuous).stroke(DS.Color.line, lineWidth: 1))
+    }
+
+    // MARK: – Widget row
+
+    @ViewBuilder
+    private var widgetRow: some View {
+        let hasShift = shifts.nextShift != nil
+        let hasPlayer = player.current != nil
+
+        if hasShift || hasPlayer {
+            HStack(spacing: 12) {
+                if let next = shifts.nextShift {
+                    Button { router.go(.shifts) } label: { NextShiftWidget(shift: next) }
+                        .buttonStyle(.plain)
+                }
+                if let t = player.current {
+                    Button { router.go(.player) } label: { NowPlayingWidget(track: t, playing: player.isPlaying) }
+                        .buttonStyle(.plain)
+                }
+                if let t = timers.running.first, !hasShift && !hasPlayer {
+                    Button { router.go(.timers) } label: { TimerWidget(timer: t) }
+                        .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    // MARK: – Tile
 
     private func tile(_ m: ModuleInfo) -> some View {
-        NavigationLink(value: m.id) { ModuleTile(info: m) }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("tile_\(m.id.rawValue)")
+        NavigationLink(value: m.id) {
+            DSModuleTile(info: m)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("tile_\(m.id.rawValue)")
     }
 
-    private var header: some View {
-        TimelineView(.periodic(from: .now, by: 30)) { ctx in
-            VStack(alignment: .leading, spacing: 4) {
-                Text(greeting(ctx.date)).font(.system(size: 34, weight: .heavy, design: .rounded))
-                    .foregroundStyle(LinearGradient(colors: [.white, Theme.violet], startPoint: .leading, endPoint: .trailing))
-                Text(Fmt.longDay(ctx.date).capitalized).foregroundStyle(.secondary)
-            }
+    // MARK: – Glass dock
+
+    private var dock: some View {
+        HStack(spacing: 0) {
+            dockButton(icon: "house.fill",         id: "dock_home",     action: { router.path = [] })
+            dockButton(icon: "music.note",          id: "dock_player",   action: { router.go(.player) })
+            dockButton(icon: "bubble.left.fill",    id: "dock_chat",     action: { router.go(.assistant) })
+            dockButton(icon: "calendar",            id: "dock_shifts",   action: { router.go(.shifts) })
+            dockButton(icon: "gearshape.fill",      id: "dock_settings", action: { showSettings = true })
         }
-        .padding(.top, 4)
+        .padding(.horizontal, 24)
+        .padding(.top, 14)
+        .padding(.bottom, max(16, 0))
+        .background(.ultraThinMaterial)
+        .overlay(Rectangle().fill(DS.Color.line).frame(height: 1), alignment: .top)
+        .ignoresSafeArea(edges: .bottom)
     }
+
+    private func dockButton(icon: String, id: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 22, weight: .light))
+                .foregroundStyle(DS.Color.ink.opacity(0.85))
+                .frame(maxWidth: .infinity)
+                .frame(height: 40)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(id)
+    }
+
+    // MARK: – Greeting
 
     private func greeting(_ d: Date) -> String {
         switch Calendar.current.component(.hour, from: d) {
         case 5..<12: return "Доброе утро, Егор"
-        case 12..<18: return "Привет, Егор"
+        case 12..<18: return "Добрый день, Егор"
         case 18..<23: return "Добрый вечер, Егор"
-        default: return "Не спится, Егор?"
+        default:      return "Доброй ночи, Егор"
         }
     }
 }
 
-struct ModuleTile: View {
-    let info: ModuleInfo
-    var body: some View {
-        let tint = Color(hex: info.tint)
-        VStack(spacing: 8) {
-            Text(info.emoji).font(.system(size: 34))
-            Text(info.title).font(.footnote.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.7)
-            if !info.ready {
-                Text(info.wave).font(.caption2).foregroundStyle(.secondary)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 104)
-        .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(LinearGradient(colors: [tint.opacity(info.ready ? 0.55 : 0.18), Theme.card], startPoint: .topLeading, endPoint: .bottomTrailing))
-        )
-        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(tint.opacity(info.ready ? 0.6 : 0.15), lineWidth: 1))
-        .opacity(info.ready ? 1 : 0.7)
-        .contentShape(Rectangle())
-    }
-}
+// MARK: - Widget cards
 
-struct NextShiftCard: View {
+struct NextShiftWidget: View {
     let shift: Shift
     var body: some View {
-        HStack(spacing: 14) {
-            Text("🍟").font(.largeTitle)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(shift.start <= Date() ? "Сейчас смена" : "Следующая смена").font(.caption).foregroundStyle(.secondary)
-                Text("\(Fmt.day(shift.start)), \(Fmt.time(shift.start))–\(Fmt.time(shift.end))").font(.headline)
-                Text(Fmt.hours(shift.hours)).font(.caption).foregroundStyle(Theme.gold)
+        VStack(alignment: .leading, spacing: 8) {
+            Label {
+                Text(shift.start <= Date() ? "Сейчас смена" : "Следующая смена")
+                    .font(DS.Font.label)
+                    .tracking(1.5)
+                    .foregroundStyle(DS.Color.mute)
+            } icon: {
+                Image(systemName: "fork.knife")
+                    .font(.system(size: 11, weight: .light))
+                    .foregroundStyle(DS.Color.mute)
             }
-            Spacer()
-            Image(systemName: "chevron.right").foregroundStyle(.secondary)
+            Text("\(Fmt.time(shift.start))–\(Fmt.time(shift.end))")
+                .font(DS.Font.display(26))
+                .foregroundStyle(DS.Color.ink)
+            Text(Fmt.hours(shift.hours))
+                .font(DS.Font.caption)
+                .foregroundStyle(DS.Color.ember2)
         }
-        .card()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassCard(radius: DS.Radius.tile, padding: 14)
     }
 }
 
-struct NowPlayingCard: View {
+struct NowPlayingWidget: View {
     let track: Track
     let playing: Bool
     var body: some View {
-        HStack(spacing: 14) {
-            CoverArt(track: track, size: 44)
+        HStack(spacing: 10) {
+            CoverArt(track: track, size: 42)
             VStack(alignment: .leading, spacing: 2) {
-                Text(track.title).font(.headline).lineLimit(1)
-                Text(track.artist).font(.caption).foregroundStyle(.secondary)
+                Text(track.title)
+                    .font(DS.Font.bodyMed)
+                    .lineLimit(1)
+                    .foregroundStyle(DS.Color.ink)
+                Text(track.artist)
+                    .font(DS.Font.caption)
+                    .foregroundStyle(DS.Color.mute)
             }
-            Spacer()
-            EqualizerBars(tint: Color(hex: track.colorHex), playing: playing, seed: Int(Date().timeIntervalSince1970), height: 20)
+            Spacer(minLength: 0)
+            EqualizerBars(tint: DS.Color.sage, playing: playing,
+                          seed: Int(Date().timeIntervalSince1970), height: 18)
         }
-        .card()
+        .frame(maxWidth: .infinity)
+        .glassCard(radius: DS.Radius.tile, padding: 12)
     }
 }
 
-struct TimerMiniCard: View {
+struct TimerWidget: View {
     let timer: RunningTimer
     var body: some View {
-        HStack {
-            Text("⏱").font(.largeTitle)
-            Text(timer.title).font(.headline)
-            Spacer()
-            Text(timerInterval: timer.start...max(timer.start, timer.end), countsDown: true)
-                .monospacedDigit().font(.title3.bold()).foregroundStyle(Theme.gold)
+        HStack(spacing: 10) {
+            Image(systemName: "timer")
+                .font(.system(size: 22, weight: .light))
+                .foregroundStyle(DS.Color.ember)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(timer.title)
+                    .font(DS.Font.bodyMed)
+                    .foregroundStyle(DS.Color.ink)
+                Text(timerInterval: timer.start...max(timer.start, timer.end), countsDown: true)
+                    .monospacedDigit()
+                    .font(DS.Font.display(22))
+                    .foregroundStyle(DS.Color.ember2)
+            }
+            Spacer(minLength: 0)
         }
-        .card()
+        .frame(maxWidth: .infinity)
+        .glassCard(radius: DS.Radius.tile, padding: 12)
+    }
+}
+
+// MARK: - SettingsView (restyle)
+
+struct SettingsView: View {
+    @Environment(\.dismiss) private var dismiss
+    @AppStorage("bgTheme")     private var bgTheme   = "sea"
+    @AppStorage("petOverlay")  private var petOverlay = true
+    @AppStorage("ai.speak")    private var speak      = true
+    @AppStorage("ai.endpoint") private var endpoint  = ""
+    @AppStorage("ai.model")    private var aiModel   = "gpt-4o-mini"
+    @State private var key = Keychain.get("ai.key")
+
+    private let themes: [(String, String, String)] = [
+        ("sea",      "Море",   "bg_sea"),
+        ("fog",      "Туман",  "bg_fog"),
+        ("city",     "Город",  "bg_city"),
+        ("concrete", "Бетон",  "bg_concrete"),
+    ]
+
+    var body: some View {
+        ZStack {
+            AtmosphereBackground().ignoresSafeArea()
+            List {
+                // Theme picker
+                Section {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(themes, id: \.0) { key, name, img in
+                                Button {
+                                    withAnimation { bgTheme = key }
+                                } label: {
+                                    VStack(spacing: 6) {
+                                        Image(img)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 72, height: 100)
+                                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                    .stroke(bgTheme == key ? DS.Color.sage : DS.Color.line,
+                                                            lineWidth: bgTheme == key ? 2 : 1)
+                                            )
+                                        Text(name)
+                                            .font(DS.Font.caption)
+                                            .foregroundStyle(bgTheme == key ? DS.Color.sage : DS.Color.mute)
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier("theme_\(key)")
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                } header: {
+                    Text("Фон")
+                        .font(DS.Font.label)
+                        .tracking(2)
+                        .foregroundStyle(DS.Color.mute)
+                        .textCase(.uppercase)
+                }
+
+                // Pet
+                Section {
+                    Toggle("Питомец на экране", isOn: $petOverlay)
+                        .toggleStyle(DSToggleStyle())
+                        .font(DS.Font.body)
+                        .foregroundStyle(DS.Color.ink)
+                        .accessibilityIdentifier("toggle_pet_overlay")
+                } header: {
+                    Text("Питомец")
+                        .font(DS.Font.label).tracking(2).foregroundStyle(DS.Color.mute).textCase(.uppercase)
+                }
+
+                // Voice
+                Section {
+                    Toggle("Озвучивать ответы", isOn: $speak)
+                        .toggleStyle(DSToggleStyle())
+                        .font(DS.Font.body)
+                        .foregroundStyle(DS.Color.ink)
+                } header: {
+                    Text("Голос")
+                        .font(DS.Font.label).tracking(2).foregroundStyle(DS.Color.mute).textCase(.uppercase)
+                }
+
+                // AI
+                Section {
+                    TextField("https://…/v1/chat/completions", text: $endpoint)
+                        .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                        .font(DS.Font.body).foregroundStyle(DS.Color.ink)
+                    TextField("Модель", text: $aiModel)
+                        .textInputAutocapitalization(.never)
+                        .font(DS.Font.body).foregroundStyle(DS.Color.ink)
+                    SecureField("Ключ доступа", text: $key)
+                        .font(DS.Font.body).foregroundStyle(DS.Color.ink)
+                } header: {
+                    Text("Сервер ИИ")
+                        .font(DS.Font.label).tracking(2).foregroundStyle(DS.Color.mute).textCase(.uppercase)
+                } footer: {
+                    Text("Ключ — только в Keychain, не в коде.")
+                        .font(DS.Font.caption).foregroundStyle(DS.Color.dim)
+                }
+
+                // About
+                Section {
+                    LabeledContent("Версия", value: "0.2.0")
+                    LabeledContent("Модулей готово", value: "\(Modules.ready.count) из \(Modules.all.count)")
+                } header: {
+                    Text("О приложении")
+                        .font(DS.Font.label).tracking(2).foregroundStyle(DS.Color.mute).textCase(.uppercase)
+                }
+            }
+            .scrollContentBackground(.hidden)
+        }
+        .navigationTitle("Настройки")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Готово") { Keychain.set(key, for: "ai.key"); dismiss() }
+                    .foregroundStyle(DS.Color.sage)
+            }
+        }
     }
 }

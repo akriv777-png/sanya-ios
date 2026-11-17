@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 import AVFoundation
 import Speech
 
@@ -101,8 +102,10 @@ final class AssistantModel: ObservableObject {
         let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
         input = ""
-        messages.append(ChatMessage(role: "user", text: text))
+        let userMsg = ChatMessage(role: "user", text: text)
+        messages.append(userMsg)
         save()
+        EventBus.shared.emit(.chatMessage(fromUser: true))
 
         if let local = LocalBrain.handle(text) {
             let (reply, action) = local
@@ -129,6 +132,7 @@ final class AssistantModel: ObservableObject {
             self.messages.append(ChatMessage(role: "assistant", text: text))
             self.save()
             self.speak(text)
+            EventBus.shared.emit(.chatMessage(fromUser: false))
             then?()
         }
     }

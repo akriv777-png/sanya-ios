@@ -131,3 +131,13 @@ energy drinks over limit) so diary + autonomy show content. UI tests (SanyaUITes
 * testTour3 «player»: `tile_player`, `player_toggle`, wait, shot `v02_12_player` (overlay pet headbanging visible), home → shot `v02_13_island_player`, back to app,
   launcher shot `v02_14_home_pet_overlay`, counter tile `tile_counter` +1 energy ×3 → pet grumbles shot `v02_15_counter_grumble`.
 Shot names must be exactly these (the `shot()` helper writes PNGs).
+
+## UPDATE from Егор (17.11 14:23) — NO magic / fantasy theme
+* Remove runes, rune icon / island style «Руна», flame style «Пламя», Skyrim vibe and any fantasy wording.
+* Island/player styles become modern equalizer variants: «Столбики» (bars), «Волна» (wave), «Пульс» (pulse dots).
+* Backgrounds: only moody realistic: `bg_sea` (sea/cliff fog), `bg_fog` (foggy street), `bg_city` (night city), `bg_concrete` (dark concrete).
+  `bg_forest` / `bg_ember` are removed. Theme ids: sea, fog, city, concrete; identifiers `theme_<id>`.
+* Sage + ember-orange are just plain accent colors.
+* Pet: still sinister chibi emo boy (smoke + red eyes OK) but no magic items/spells/runes, no «Тьма» food, no Искра/Дух/Страж/Тень stage names.
+  Bond levels: «Незнакомец», «Сосед», «Кореш», «Бро», «Свой», «Братан навсегда». Foods: «Бургер», «Энергетик», «Картошка фри».
+* Книга Мастера module stays as-is (DnD tool).

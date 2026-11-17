@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 import WebKit
 
 /// Книга Мастера — веб-версия внутри приложения, обновляется без пересборки.
@@ -63,22 +64,43 @@ struct BookView: View {
                 }
             }
             if let f = web.failed {
-                VStack(spacing: 10) {
+                VStack(spacing: 12) {
                     Text("📖").font(.system(size: 60))
-                    Text("Нет связи").font(.headline)
-                    Text(f).font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                    Button("Повторить") { web.goHome() }.buttonStyle(.borderedProminent)
+                    Text("Нет связи")
+                        .font(DS.Font.displaySemiBold(22))
+                        .foregroundStyle(DS.Color.ink)
+                    Text(f)
+                        .font(DS.Font.caption)
+                        .foregroundStyle(DS.Color.dim)
+                        .multilineTextAlignment(.center)
+                    Button("Повторить") { web.goHome() }
+                        .buttonStyle(GlassButtonStyle(kind: .primary))
                 }
-                .padding(30).background(Theme.card, in: RoundedRectangle(cornerRadius: 20))
+                .padding(24)
+                .glassCard()
+                .padding()
             }
         }
-        .navigationTitle("📖 Книга Мастера")
+        .navigationTitle("Книга Мастера")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
-                Button { web.webView.goBack() } label: { Image(systemName: "chevron.backward.circle") }.disabled(!web.canGoBack)
-                Button { web.goHome() } label: { Image(systemName: "house") }
-                Button { web.webView.reload() } label: { Image(systemName: "arrow.clockwise") }
+                Button { web.webView.goBack() } label: {
+                    Image(systemName: "chevron.backward.circle")
+                        .foregroundStyle(web.canGoBack ? DS.Color.ink : DS.Color.dim)
+                }
+                .disabled(!web.canGoBack)
+
+                Button { web.goHome() } label: {
+                    Image(systemName: "house")
+                        .foregroundStyle(DS.Color.ink)
+                }
+
+                Button { web.webView.reload() } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .foregroundStyle(DS.Color.ink)
+                }
             }
         }
     }

@@ -106,3 +106,82 @@ enum Regex {
         }
     }
 }
+
+enum Fmt {
+    static let ru = Locale(identifier: "ru_RU")
+
+    static var cal: Calendar {
+        var c = Calendar(identifier: .gregorian)
+        c.locale = ru
+        c.firstWeekday = 2
+        return c
+    }
+
+    private static let timeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = ru
+        f.dateFormat = "HH:mm"
+        return f
+    }()
+
+    private static let longDayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = ru
+        f.dateFormat = "EEEE, d MMMM"
+        return f
+    }()
+
+    private static let dayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = ru
+        f.dateFormat = "d MMM"
+        return f
+    }()
+
+    private static let monthFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = ru
+        f.dateFormat = "LLLL yyyy"
+        return f
+    }()
+
+    static func time(_ date: Date) -> String {
+        timeFormatter.string(from: date)
+    }
+
+    static func longDay(_ date: Date) -> String {
+        longDayFormatter.string(from: date)
+    }
+
+    static func day(_ date: Date) -> String {
+        dayFormatter.string(from: date)
+    }
+
+    static func month(_ date: Date) -> String {
+        monthFormatter.string(from: date).capitalized
+    }
+
+    static func hours(_ h: Double) -> String {
+        if h.truncatingRemainder(dividingBy: 1) == 0 {
+            return "\(Int(h)) ч"
+        } else {
+            return String(format: "%.1f ч", h)
+        }
+    }
+
+    static func money(_ amount: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = " "
+        let str = formatter.string(from: NSNumber(value: Int(amount))) ?? "\(Int(amount))"
+        return "\(str) ₽"
+    }
+
+    static func clock(_ seconds: Double) -> String {
+        guard !seconds.isNaN, !seconds.isInfinite, seconds >= 0 else { return "0:00" }
+        let total = Int(seconds)
+        let m = total / 60
+        let s = total % 60
+        return String(format: "%d:%02d", m, s)
+    }
+}

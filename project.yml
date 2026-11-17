@@ -24,7 +24,8 @@ targets:
     info:
       path: Sanya/Info.plist
       properties:
-        CFBundleDisplayName: Саня
+        CFBundleName: Sanya
+        CFBundleDisplayName: Sanya
         CFBundleDevelopmentRegion: ru
         UIAppFonts: [CormorantGaramond-Medium.ttf, CormorantGaramond-SemiBold.ttf, Inter-Regular.ttf, Inter-Medium.ttf, Inter-SemiBold.ttf]
         CFBundleLocalizations: [ru]
@@ -60,7 +61,9 @@ targets:
     info:
       path: SanyaWidgets/Info.plist
       properties:
-        CFBundleDisplayName: Саня
+        CFBundleName: Sanya Widgets
+        CFBundleDisplayName: Sanya Widgets
+        CFBundleLocalizations: [ru]
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSSupportsLiveActivities: true

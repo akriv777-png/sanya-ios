@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 import AVFoundation
 import MediaPlayer
 import UIKit
@@ -39,9 +40,10 @@ final class PlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
 
     var islandSymbol: String {
         switch islandStyle {
-        case "rune": return "seal.fill"
-        case "flame": return "flame.fill"
-        default: return "music.note"
+        case "bars": return "chart.bar.fill"
+        case "wave": return "waveform"
+        case "pulse": return "waveform.path"
+        default: return "chart.bar.fill"
         }
     }
 
@@ -49,7 +51,7 @@ final class PlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
         super.init()
         tracks = DiskStore.load([Track].self, "tracks.json") ?? []
         if !tracks.contains(where: { $0.bundled }) {
-            tracks.insert(Track(fileName: "demo.m4a", title: "Руны в ночи (демо)", artist: "Саня", colorHex: "8A5CFF", bundled: true), at: 0)
+            tracks.insert(Track(fileName: "demo.m4a", title: "Ночной город (демо)", artist: "Саня", colorHex: "7FA384", bundled: true), at: 0)
         }
         setupRemote()
     }
@@ -88,6 +90,8 @@ final class PlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
             startTicker()
             updateNowPlaying()
             pushActivity(restart: true)
+            let t = tracks[index]
+            EventBus.shared.emit(.trackStarted(title: t.title, artist: t.artist))
         } catch {
             print("play error", error)
         }
@@ -95,7 +99,13 @@ final class PlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
 
     func toggle() {
         guard let p = player else { play(index: currentIndex ?? 0); return }
-        if p.isPlaying { p.pause(); isPlaying = false } else { p.play(); isPlaying = true }
+        if p.isPlaying {
+            p.pause(); isPlaying = false
+            EventBus.shared.emit(.trackPaused)
+        } else {
+            p.play(); isPlaying = true
+            if let t = current { EventBus.shared.emit(.trackStarted(title: t.title, artist: t.artist)) }
+        }
         updateNowPlaying()
         pushActivity()
     }
@@ -186,9 +196,20 @@ final class PlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
         guard let t = current else { return }
         let elapsed = player?.currentTime ?? 0
         let start = Date().addingTimeInterval(-elapsed)
+        let petEmo = EmotionRegistry.baseSprite(for: PetEngine.shared.currentEmotion.id)
         let state = SanyaActivityAttributes.ContentState(
-            title: t.title, subtitle: t.artist, start: start, end: start.addingTimeInterval(max(duration, 1)),
-            colorHex: t.colorHex, isPlaying: isPlaying, progress: duration > 0 ? elapsed / duration : 0)
+            title: t.title,
+            subtitle: t.artist,
+            start: start,
+            end: start.addingTimeInterval(max(duration, 1)),
+            colorHex: t.colorHex,
+            isPlaying: isPlaying,
+            progress: duration > 0 ? elapsed / duration : 0,
+            petEmotion: petEmo,
+            petSatiety: PetStore.shared.stats.satiety,
+            petEnergy: PetStore.shared.stats.energy,
+            petMood: PetStore.shared.stats.mood
+        )
         if restart || !LiveActivityManager.shared.has("player") {
             LiveActivityManager.shared.start(kind: "player", symbol: islandSymbol, state: state)
         } else {

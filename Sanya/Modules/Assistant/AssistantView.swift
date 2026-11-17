@@ -7,47 +7,61 @@ struct AssistantView: View {
     private let chips = ["Привет, Саня!", "Что ты умеешь?", "Таймер на 1 минуту", "Когда моя смена?", "Открой смены"]
 
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(spacing: 10) {
-                        ForEach(model.messages) { MessageBubble(msg: $0).id($0.id) }
-                        if model.thinking { TypingBubble().id("typing") }
+        ZStack {
+            AtmosphereBackground().ignoresSafeArea()
+            VStack(spacing: 0) {
+                // Message list
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(spacing: 10) {
+                            ForEach(model.messages) { MessageBubble(msg: $0).id($0.id) }
+                            if model.thinking { TypingBubble().id("typing") }
+                        }
+                        .padding()
                     }
-                    .padding()
-                }
-                .onChange(of: model.messages.count) { _, _ in
-                    if let id = model.messages.last?.id { withAnimation { proxy.scrollTo(id, anchor: .bottom) } }
-                }
-            }
-            if speech.isRecording || speech.error != nil {
-                ListeningOrb(level: speech.level, text: speech.error ?? (speech.transcript.isEmpty ? "Слушаю…" : speech.transcript))
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(Array(chips.enumerated()), id: \.offset) { i, c in
-                        Button(c) { model.send(c) }
-                            .font(.footnote.weight(.semibold))
-                            .padding(.horizontal, 12).padding(.vertical, 8)
-                            .background(Theme.card2, in: Capsule())
-                            .accessibilityIdentifier("chip_\(i)")
+                    .onChange(of: model.messages.count) { _, _ in
+                        if let id = model.messages.last?.id {
+                            withAnimation { proxy.scrollTo(id, anchor: .bottom) }
+                        }
                     }
                 }
-                .padding(.horizontal)
+
+                // Listening orb
+                if speech.isRecording || speech.error != nil {
+                    ListeningOrb(level: speech.level,
+                                 text: speech.error ?? (speech.transcript.isEmpty ? "Слушаю…" : speech.transcript))
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+
+                // Quick-reply chips
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(Array(chips.enumerated()), id: \.offset) { i, c in
+                            DSChip(title: c, action: { model.send(c) })
+                                .accessibilityIdentifier("chip_\(i)")
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                .padding(.vertical, 6)
+
+                // Input bar
+                inputBar
             }
-            .padding(.vertical, 6)
-            inputBar
         }
-        .background(Theme.background)
-        .navigationTitle("🗣 Саня")
+        .navigationTitle("Саня")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("Саня").font(DS.Font.display(22)).foregroundStyle(DS.Color.ink)
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button("Настройки ИИ", systemImage: "gearshape") { showSettings = true }
                     Button("Очистить чат", systemImage: "trash", role: .destructive) { model.clear() }
-                } label: { Image(systemName: "ellipsis.circle") }
+                } label: { Image(systemName: "ellipsis.circle").foregroundStyle(DS.Color.ink) }
             }
         }
         .sheet(isPresented: $showSettings) { NavigationStack { AssistantSettingsView() } }
@@ -65,31 +79,36 @@ struct AssistantView: View {
         HStack(spacing: 10) {
             TextField("Напиши Сане…", text: $model.input, axis: .vertical)
                 .lineLimit(1...4)
-                .padding(.horizontal, 14).padding(.vertical, 10)
-                .background(Theme.card, in: RoundedRectangle(cornerRadius: 20))
+                .font(DS.Font.body)
+                .foregroundStyle(DS.Color.ink)
+                .padding(.horizontal, 18).padding(.vertical, 12)
+                .background(.ultraThinMaterial, in: Capsule(style: .continuous))
+                .overlay(Capsule(style: .continuous).stroke(DS.Color.line, lineWidth: 1))
                 .accessibilityIdentifier("chat_input")
                 .onSubmit { model.send(model.input) }
+
             if model.input.isEmpty {
                 Button { speech.toggle() } label: {
                     Image(systemName: speech.isRecording ? "stop.fill" : "mic.fill")
-                        .font(.title3.bold())
+                        .font(.system(size: 18, weight: .light))
                         .frame(width: 46, height: 46)
-                        .background(speech.isRecording ? Theme.accent : Theme.violet, in: Circle())
-                        .foregroundStyle(.white)
+                        .background(speech.isRecording ? DS.Color.danger : DS.Color.sage, in: Circle())
+                        .foregroundStyle(Color(hex: "18221B"))
                 }
                 .accessibilityIdentifier("chat_mic")
             } else {
                 Button { model.send(model.input) } label: {
-                    Image(systemName: "arrow.up").font(.title3.bold())
+                    Image(systemName: "arrow.up")
+                        .font(.system(size: 18, weight: .semibold))
                         .frame(width: 46, height: 46)
-                        .background(Theme.accent, in: Circle())
-                        .foregroundStyle(.white)
+                        .background(DS.Color.sage, in: Circle())
+                        .foregroundStyle(Color(hex: "18221B"))
                 }
                 .accessibilityIdentifier("chat_send")
             }
         }
         .padding(.horizontal)
-        .padding(.bottom, 8)
+        .padding(.bottom, 10)
     }
 }
 
@@ -100,16 +119,38 @@ struct MessageBubble: View {
         HStack(alignment: .bottom) {
             if mine { Spacer(minLength: 50) }
             if !mine {
-                Text("С").font(.caption.bold()).frame(width: 28, height: 28)
-                    .background(LinearGradient(colors: [Theme.violet, Theme.accent], startPoint: .top, endPoint: .bottom), in: Circle())
+                // Assistant avatar
+                Text("С")
+                    .font(DS.Font.label)
+                    .frame(width: 28, height: 28)
+                    .background(DS.Color.sage, in: Circle())
+                    .foregroundStyle(Color(hex: "18221B"))
             }
             Text(msg.text)
-                .padding(.horizontal, 14).padding(.vertical, 10)
-                .background(
-                    mine ? AnyShapeStyle(LinearGradient(colors: [Theme.accent, Theme.violet], startPoint: .topLeading, endPoint: .bottomTrailing))
-                         : AnyShapeStyle(Theme.card2),
-                    in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .foregroundStyle(.white)
+                .font(DS.Font.body)
+                .foregroundStyle(DS.Color.ink)
+                .padding(.horizontal, 16).padding(.vertical, 12)
+                .background {
+                    if mine {
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .fill(DS.Color.sage.opacity(0.25))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .stroke(DS.Color.sage.opacity(0.4), lineWidth: 1)
+                            )
+                    } else {
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .fill(.ultraThinMaterial)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .fill(DSColors.glass2)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .stroke(DS.Color.line, lineWidth: 1)
+                            )
+                    }
+                }
             if !mine { Spacer(minLength: 50) }
         }
         .transition(.move(edge: mine ? .trailing : .leading).combined(with: .opacity))
@@ -122,13 +163,14 @@ struct TypingBubble: View {
         HStack {
             HStack(spacing: 5) {
                 ForEach(0..<3, id: \.self) { i in
-                    Circle().fill(.white.opacity(0.7)).frame(width: 7, height: 7)
+                    Circle().fill(DS.Color.mute).frame(width: 7, height: 7)
                         .offset(y: phase ? -4 : 2)
                         .animation(.easeInOut(duration: 0.45).repeatForever().delay(Double(i) * 0.15), value: phase)
                 }
             }
             .padding(.horizontal, 16).padding(.vertical, 14)
-            .background(Theme.card2, in: Capsule())
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(Capsule().stroke(DS.Color.line, lineWidth: 1))
             Spacer()
         }
         .padding(.leading, 36)
@@ -143,15 +185,19 @@ struct ListeningOrb: View {
         VStack(spacing: 10) {
             ZStack {
                 ForEach(0..<3, id: \.self) { i in
-                    Circle().stroke(Theme.violet.opacity(0.5 - Double(i) * 0.15), lineWidth: 2)
-                        .frame(width: 60 + CGFloat(i) * 22 + level * 40, height: 60 + CGFloat(i) * 22 + level * 40)
+                    Circle().stroke(DS.Color.sage.opacity(0.4 - Double(i) * 0.12), lineWidth: 2)
+                        .frame(width: 60 + CGFloat(i) * 22 + level * 40,
+                               height: 60 + CGFloat(i) * 22 + level * 40)
                 }
-                Circle().fill(RadialGradient(colors: [Theme.accent, Theme.violet], center: .center, startRadius: 2, endRadius: 40))
+                Circle()
+                    .fill(RadialGradient(colors: [DS.Color.sage, DS.Color.sageDeep],
+                                        center: .center, startRadius: 2, endRadius: 40))
                     .frame(width: 56 + level * 20, height: 56 + level * 20)
             }
             .frame(height: 130)
             .animation(.easeOut(duration: 0.1), value: level)
-            Text(text).font(.callout).multilineTextAlignment(.center).padding(.horizontal)
+            Text(text).font(DS.Font.body).multilineTextAlignment(.center).padding(.horizontal)
+                .foregroundStyle(DS.Color.ink)
         }
         .padding(.vertical, 8)
     }
@@ -160,8 +206,8 @@ struct ListeningOrb: View {
 struct AssistantSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("ai.endpoint") private var endpoint = ""
-    @AppStorage("ai.model") private var model = "gpt-4o-mini"
-    @AppStorage("ai.speak") private var speak = true
+    @AppStorage("ai.model")    private var model    = "gpt-4o-mini"
+    @AppStorage("ai.speak")    private var speak    = true
     @State private var key = Keychain.get("ai.key")
 
     var body: some View {
@@ -172,17 +218,17 @@ struct AssistantSettingsView: View {
                 TextField("Модель", text: $model).textInputAutocapitalization(.never)
                 SecureField("Ключ доступа", text: $key)
             } header: { Text("Сервер ИИ") } footer: {
-                Text("OpenAI-совместимый адрес или свой прокси на боксе. Ключ хранится только в Keychain телефона. Пусто — демо-режим с локальными командами.")
+                Text("OpenAI-совместимый адрес или свой прокси на боксе. Ключ хранится только в Keychain телефона.")
             }
             Section("Голос") {
                 Toggle("Озвучивать ответы", isOn: $speak)
             }
             Section("О приложении") {
-                LabeledContent("Версия", value: "0.1.0 (MVP)")
+                LabeledContent("Версия", value: "0.2.0")
                 LabeledContent("Модулей готово", value: "\(Modules.ready.count) из \(Modules.all.count)")
             }
         }
-        .navigationTitle("Настройки")
+        .navigationTitle("Настройки ИИ")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
