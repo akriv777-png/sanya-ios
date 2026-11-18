@@ -2,7 +2,7 @@ import SwiftUI
 import Combine
 
 enum ModuleID: String, CaseIterable, Identifiable, Hashable {
-    case assistant, shifts, book, timers, player
+    case assistant, shifts, book, timers, player, reality
     case pet                                                     // placeholder — section C
     case vex, counter, vault, piggy, rust, ml,
          weather, scanner, diary, wardrobe, webapps, home, games
@@ -20,11 +20,12 @@ struct ModuleInfo: Identifiable {
     var ready: Bool { readyIDs.contains(id) }
 }
 
-private let readyIDs: Set<ModuleID> = [.assistant, .shifts, .book, .timers, .player, .counter, .pet]
+private let readyIDs: Set<ModuleID> = [.assistant, .reality, .shifts, .book, .timers, .player, .counter, .pet]
 
 enum Modules {
     static let all: [ModuleInfo] = [
         .init(id: .assistant, emoji: "🗣",  title: "Саня",           tint: "8A5CFF", wave: "v0.1", blurb: "Голосовой ассистент: чат, голос, команды модулям"),
+        .init(id: .reality,   emoji: "🌧",  title: "Реальность",     tint: "B05CFF", wave: "v0.4", blurb: "Киберпанк-жизнь под дождём: люди с ИИ, руны, дрон Оракула"),
         .init(id: .shifts,    emoji: "🍟",  title: "Смены",          tint: "FFB020", wave: "v0.1", blurb: "График из скринов Orquest, часы, зарплата, напоминания"),
         .init(id: .book,      emoji: "📖",  title: "Книга Мастера",  tint: "C0392B", wave: "v0.1", blurb: "Твоя DnD-книга внутри приложения"),
         .init(id: .timers,    emoji: "⏱",  title: "Таймеры",        tint: "FF9F0A", wave: "v0.1", blurb: "Помодоро и таймеры на острове"),
@@ -70,6 +71,7 @@ struct ModuleScreen: View {
         case .player:    PlayerView()
         case .counter:   CounterView()
         case .pet:       PetView()
+        case .reality:   RealityView()
         default:         ComingSoonView(info: Modules.info(id))
         }
     }

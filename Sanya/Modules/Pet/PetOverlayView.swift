@@ -25,7 +25,7 @@ public struct PetOverlayView: View {
     public init() {}
 
     private var isVisible: Bool {
-        enabled && !router.path.contains(.pet)
+        enabled && !router.path.contains(.pet) && !router.path.contains(.reality)
     }
 
     public var body: some View {

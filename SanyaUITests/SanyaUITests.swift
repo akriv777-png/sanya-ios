@@ -186,4 +186,74 @@ final class SanyaUITests: XCTestCase {
         shot("v03_counter")
         back()
     }
+
+    // MARK: - Tour 4: «Реальность» (landscape game)
+
+    func testTour4Reality() {
+        app.terminate()
+        app.launchArguments = ["-uitest", "-rlDemo", "-rlNearLin"]
+        app.launch()
+        pause(2)
+        tap("tile_reality")
+        pause(1)
+        XCUIDevice.shared.orientation = .landscapeLeft
+        pause(3)
+        shot("v04_intro")
+        if el("rl_continue").waitForExistence(timeout: 5) { el("rl_continue").tap() } else { tap("rl_start") }
+        pause(5)
+        shot("v04_street_night")
+
+        // talk to Mama Lin (AI with scripted fallback)
+        tap("rl_action", timeout: 6)
+        pause(2)
+        shot("v04_dialog_lin")
+        let input = el("rl_input")
+        if input.waitForExistence(timeout: 4) {
+            input.tap()
+            app.typeText("Привет, Мама Лин! Что слышно про дроны?")
+            tap("rl_send", timeout: 3)
+            pause(1)
+            let typing = el("rl_typing")
+            var waited = 0.0
+            while typing.exists && waited < 45 { pause(1); waited += 1 }
+            pause(1)
+            shot("v04_dialog_reply")
+        }
+        tap("rl_dialog_close")
+        pause(1.5)
+
+        tap("rl_inventory")
+        pause(1.2)
+        shot("v04_inventory")
+        tap("rl_modal_close")
+        pause(1)
+
+        // magic
+        tap("rl_spell_glyph")
+        pause(0.4)
+        shot("v04_magic_glyph_charge")
+        pause(0.3)
+        shot("v04_magic_glyph_blast")
+        pause(3)
+        tap("rl_spell_hex")
+        pause(0.65)
+        shot("v04_magic_hex")
+        pause(3)
+        tap("rl_spell_sigil")
+        pause(1.1)
+        shot("v04_magic_sigil")
+        pause(2.5)
+        tap("rl_spell_shadow")
+        pause(0.22)
+        shot("v04_magic_shadow")
+        pause(3)
+        shot("v04_hud_wanted")
+        tap("rl_menu")
+        pause(1)
+        shot("v04_menu")
+        tap("rl_exit")
+        pause(2)
+        XCUIDevice.shared.orientation = .portrait
+        pause(1)
+    }
 }

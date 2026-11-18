@@ -32,7 +32,7 @@ jobs:
       - name: UI tours (screenshots only)
         run: |
           mkdir -p out/videos out/shots
-          for T in testTour1 testTour2 testTour3; do
+          for T in testTour4Reality testTour1; do
             TEST_RUNNER_SHOT_DIR="$PWD/out/shots" xcodebuild test-without-building -project Sanya.xcodeproj -scheme Sanya \
               -destination "id=$UDID" -derivedDataPath build \
               -only-testing:SanyaUITests/SanyaUITests/$T -resultBundlePath "out/$T.xcresult" > "out/$T.log" 2>&1 \
@@ -69,9 +69,9 @@ jobs:
           APP=build-ios/Build/Products/Release-iphoneos/Sanya.app
           grep -q "BUILD SUCCEEDED" ipa.log || { grep -A6 "error:" ipa.log | head -100; exit 1; }
           mkdir -p Payload out && cp -R "$APP" Payload/
-          zip -qry out/Sanya-v0.3-unsigned.ipa Payload
+          zip -qry out/Sanya-v0.4-test-unsigned.ipa Payload
           ls -la out
       - uses: actions/upload-artifact@v4
         with:
           name: sanya-ipa
-          path: out/Sanya-v0.3-unsigned.ipa
+          path: out/Sanya-v0.4-test-unsigned.ipa

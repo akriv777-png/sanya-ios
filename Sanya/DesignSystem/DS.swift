@@ -363,6 +363,7 @@ struct DSModuleTile: View {
         case .webapps:   return "square.grid.2x2"
         case .home:      return "house"
         case .games:     return "die.face.5"
+        case .reality:   return "cloud.bolt.rain"
         }
     }
 
