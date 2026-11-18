@@ -18,4 +18,18 @@
 | 🎧 Плеер | импорт из «Файлов», фон, экран блокировки, визуализатор, остров: обложка-бейдж + эквалайзер в цвет обложки, стили «руна»/«пламя» | настоящая обложка на острове (нужна App Group), FFT, караоке |
 
 ## Установка на iPhone
-Скачай `Sanya-v0.1-unsigned.ipa` из артефактов последнего зелёного запуска → SideStore → «+» → выбрать ipa.
+Публичный источник SideStore (только IPA, без исходников):
+
+https://raw.githubusercontent.com/akriv777-png/sanya-releases/main/apps.json
+
+В SideStore: Sources → «+» → вставь эту ссылку. Или открой на iPhone:
+
+`sidestore://source?url=https://raw.githubusercontent.com/akriv777-png/sanya-releases/main/apps.json`
+
+Релизы: https://github.com/akriv777-png/sanya-releases/releases
+
+С версии 0.4.1 приложение само проверяет этот источник и показывает баннер «Доступно обновление» с кнопкой «Обновить» (ставит через SideStore). Первую сборку с проверкой обновлений нужно поставить вручную.
+
+После зелёного CI новую сборку публикуют так:
+
+`scripts/publish_release.sh path/to/Sanya-vX.Y.Z-B-unsigned.ipa "что нового"`

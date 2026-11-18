@@ -6,6 +6,8 @@ struct LauncherView: View {
     @ObservedObject var player  = PlayerModel.shared
     @ObservedObject var timers  = TimerStore.shared
     @State private var showSettings = false
+    @ObservedObject private var updates = UpdateChecker.shared
+    @Environment(\.scenePhase) private var scenePhase
 
     // 4-column grid for modules
     private let cols = Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
@@ -24,6 +26,11 @@ struct LauncherView: View {
                         headerSection
                             .padding(.top, 60)
                             .appearIn(0)
+
+                        if let rel = updates.available {
+                            updateBanner(rel)
+                                .appearIn(0)
+                        }
 
                         // ── search field ─────────────────────────────────
                         searchBar
@@ -71,6 +78,10 @@ struct LauncherView: View {
             }
             .sheet(isPresented: $showSettings) {
                 NavigationStack { SettingsView() }
+            }
+            .onAppear { updates.checkIfNeeded() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { updates.checkIfNeeded() }
             }
         }
     }
@@ -176,6 +187,34 @@ struct LauncherView: View {
         .accessibilityIdentifier(id)
     }
 
+    // MARK: – Update banner
+
+    private func updateBanner(_ rel: UpdateChecker.Release) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Доступно обновление \(rel.marketingLabel)")
+                    .font(DS.Font.bodyMed)
+                    .foregroundStyle(DS.Color.ink)
+                if !rel.localizedDescription.isEmpty {
+                    Text(rel.localizedDescription)
+                        .font(DS.Font.caption)
+                        .foregroundStyle(DS.Color.mute)
+                        .lineLimit(2)
+                }
+            }
+            Spacer(minLength: 8)
+            Button("Обновить") { updates.openInstall() }
+                .font(DS.Font.bodyMed)
+                .foregroundStyle(DS.Color.sage)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(DS.Color.sage.opacity(0.18), in: Capsule(style: .continuous))
+                .accessibilityIdentifier("update_install_banner")
+        }
+        .glassCard(radius: DS.Radius.tile, padding: 14)
+        .accessibilityIdentifier("update_banner")
+    }
+
     // MARK: – Greeting
 
     private func greeting(_ d: Date) -> String {
@@ -267,6 +306,7 @@ struct TimerWidget: View {
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var updates = UpdateChecker.shared
     @AppStorage("bgTheme")     private var bgTheme   = "sea"
     @AppStorage("petOverlay")  private var petOverlay = true
     @AppStorage("ai.speak")    private var speak      = true
@@ -410,6 +450,51 @@ struct SettingsView: View {
                 } header: {
                     Text("О приложении")
                         .font(DS.Font.label).tracking(2).foregroundStyle(DS.Color.mute).textCase(.uppercase)
+                }
+
+                // Updates — after About so launcher/settings screenshots stay stable
+                Section {
+                    LabeledContent("Сейчас", value: updates.currentLabel)
+                    if let rel = updates.available {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Доступно обновление \(rel.marketingLabel)")
+                                .font(DS.Font.bodyMed)
+                                .foregroundStyle(DS.Color.sage)
+                            if !rel.localizedDescription.isEmpty {
+                                Text(rel.localizedDescription)
+                                    .font(DS.Font.caption)
+                                    .foregroundStyle(DS.Color.mute)
+                            }
+                            Button("Обновить") { updates.openInstall() }
+                                .font(DS.Font.bodyMed)
+                                .foregroundStyle(DS.Color.sage)
+                                .accessibilityIdentifier("update_install")
+                        }
+                    }
+                    Button {
+                        Task { await updates.check() }
+                    } label: {
+                        HStack {
+                            Text("Проверить обновления").font(DS.Font.body).foregroundStyle(DS.Color.sage)
+                            Spacer()
+                            if updates.checking {
+                                ProgressView()
+                            } else {
+                                Text(updates.status).font(DS.Font.caption).foregroundStyle(DS.Color.mute)
+                            }
+                        }
+                    }
+                    .accessibilityIdentifier("update_check")
+                    Button("Добавить источник в SideStore") { updates.openSource() }
+                        .font(DS.Font.body)
+                        .foregroundStyle(DS.Color.sage)
+                        .accessibilityIdentifier("add_sidestore_source")
+                } header: {
+                    Text("Обновления")
+                        .font(DS.Font.label).tracking(2).foregroundStyle(DS.Color.mute).textCase(.uppercase)
+                } footer: {
+                    Text("Обновление ставится через SideStore. Источник можно добавить один раз — дальше новые версии появятся сами.")
+                        .font(DS.Font.caption).foregroundStyle(DS.Color.dim)
                 }
             }
             .scrollContentBackground(.hidden)

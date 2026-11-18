@@ -77,10 +77,14 @@ jobs:
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" | tee ipa.log | grep -E "error:|BUILD" || true
           APP=build-ios/Build/Products/Release-iphoneos/Sanya.app
           grep -q "BUILD SUCCEEDED" ipa.log || { grep -A6 "error:" ipa.log | head -100; exit 1; }
+          V=$(awk -F'"' '/MARKETING_VERSION:/ {print $2; exit}' project.yml)
+          B=$(awk -F'"' '/CURRENT_PROJECT_VERSION:/ {print $2; exit}' project.yml)
           mkdir -p Payload out && cp -R "$APP" Payload/
-          zip -qry out/Sanya-v0.4-test-unsigned.ipa Payload
+          zip -qry "out/Sanya-v${V}-${B}-unsigned.ipa" Payload
           ls -la out
+          # IPA is published to akriv777-png/sanya-releases after a green build
+          # via scripts/publish_release.sh (GITHUB_TOKEN cannot write to that repo).
       - uses: actions/upload-artifact@v4
         with:
           name: sanya-ipa
-          path: out/Sanya-v0.4-test-unsigned.ipa
+          path: out/Sanya-v*-unsigned.ipa
