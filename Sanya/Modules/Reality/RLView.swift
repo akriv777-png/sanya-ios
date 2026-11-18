@@ -37,6 +37,11 @@ enum RLAutoTour {
         func at(_ t: Double, _ f: @escaping () -> Void) { DispatchQueue.main.asyncAfter(deadline: .now() + t, execute: f) }
         at(0.8) { if !game.started { game.begin(fresh: true) } }
         guard args.contains("-rlAutoTour") else { return }
+        // stroll around the plaza first (joystick input)
+        at(3.5) { game.input.vector = CGVector(dx: 0.9, dy: 0.35) }
+        at(5.5) { game.input.vector = CGVector(dx: 0.2, dy: -0.95) }
+        at(7.0) { game.input.vector = CGVector(dx: -0.95, dy: 0.25) }
+        at(8.4) { game.input.vector = .zero }
         at(9) { game.state.mana = 100; scene.cast(.glyph) }
         at(16) { game.state.mana = 100; scene.cast(.hex) }
         at(23) { game.state.mana = 100; scene.cast(.sigil) }

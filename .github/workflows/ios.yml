@@ -37,12 +37,18 @@ jobs:
             # simctl screenshots in parallel: independent of XCTest idle detection
             ( IV=8; [ "$T" = testTour4Reality ] && IV=2; i=0; while [ $i -lt 90 ]; do sleep $IV; i=$((i+1)); xcrun simctl io "$UDID" screenshot --type=png "out/simshots/${T}_$(printf %02d $i).png" >/dev/null 2>&1 || true; done ) &
             SNAP=$!
+            REC=""
+            if [ "$T" = testTour4Reality ]; then
+              xcrun simctl io "$UDID" recordVideo --codec=h264 --force "out/videos/tour4_raw.mp4" > out/rec.log 2>&1 &
+              REC=$!
+            fi
             # watchdog: never let one tour hang the job
             TEST_RUNNER_SHOT_DIR="$PWD/out/shots" perl -e 'alarm shift; exec @ARGV' 600 xcodebuild test-without-building -project Sanya.xcodeproj -scheme Sanya \
               -destination "id=$UDID" -derivedDataPath build \
               -only-testing:SanyaUITests/SanyaUITests/$T -resultBundlePath "out/$T.xcresult" > "out/$T.log" 2>&1 \
               || { echo "FAILED $T" >> out/failures.txt; grep -E "error|fail" "out/$T.log" | head -40; }
             kill $SNAP 2>/dev/null || true
+            if [ -n "$REC" ]; then kill -INT $REC 2>/dev/null || true; sleep 5; fi
             tail -60 "out/$T.log"
           done
           ls -la out/simshots
