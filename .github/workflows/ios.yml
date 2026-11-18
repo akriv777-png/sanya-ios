@@ -32,12 +32,20 @@ jobs:
       - name: UI tours (screenshots only)
         run: |
           mkdir -p out/videos out/shots
+          mkdir -p out/simshots
           for T in testTour4Reality testTour1; do
-            TEST_RUNNER_SHOT_DIR="$PWD/out/shots" xcodebuild test-without-building -project Sanya.xcodeproj -scheme Sanya \
+            # simctl screenshots in parallel: independent of XCTest idle detection
+            ( i=0; while [ $i -lt 60 ]; do sleep 8; i=$((i+1)); xcrun simctl io "$UDID" screenshot --type=png "out/simshots/${T}_$(printf %02d $i).png" >/dev/null 2>&1 || true; done ) &
+            SNAP=$!
+            # watchdog: never let one tour hang the job
+            TEST_RUNNER_SHOT_DIR="$PWD/out/shots" perl -e 'alarm shift; exec @ARGV' 600 xcodebuild test-without-building -project Sanya.xcodeproj -scheme Sanya \
               -destination "id=$UDID" -derivedDataPath build \
               -only-testing:SanyaUITests/SanyaUITests/$T -resultBundlePath "out/$T.xcresult" > "out/$T.log" 2>&1 \
               || { echo "FAILED $T" >> out/failures.txt; grep -E "error|fail" "out/$T.log" | head -40; }
+            kill $SNAP 2>/dev/null || true
+            tail -60 "out/$T.log"
           done
+          ls -la out/simshots
           ls -la out/videos out/shots
           mkdir -p out/crashes && cp ~/Library/Logs/DiagnosticReports/Sanya* out/crashes/ 2>/dev/null || true
           ls out/crashes
@@ -49,6 +57,7 @@ jobs:
           path: |
             out/videos
             out/shots
+            out/simshots
             out/failures.txt
             out/crashes
             out/*.log
