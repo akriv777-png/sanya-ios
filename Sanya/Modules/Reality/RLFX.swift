@@ -374,10 +374,11 @@ extension RLScene {
             let halo = glowSprite(color, size: 34, alpha: 0.5)
             g.addChild(halo)
             fx.addChild(g)
-            g.run(.sequence([.wait(forDuration: 0.04 * Double(i)),
-                             .group([.fadeAlpha(to: 1, duration: 0.2), .moveBy(x: .random(in: -6...6), y: .random(in: 50...90), duration: life).withTiming(.easeOut),
-                                     .sequence([.wait(forDuration: life * 0.55), .fadeOut(withDuration: life * 0.45)])]),
-                             .removeFromParent()]))
+            let dx = CGFloat.random(in: -6...6), dy = CGFloat.random(in: 50...90)
+            let rise = SKAction.moveBy(x: dx, y: dy, duration: life).withTiming(.easeOut)
+            let fade = SKAction.sequence([.wait(forDuration: life * 0.55), .fadeOut(withDuration: life * 0.45)])
+            let body = SKAction.group([.fadeAlpha(to: 1, duration: 0.2), rise, fade])
+            g.run(.sequence([.wait(forDuration: 0.04 * Double(i)), body, .removeFromParent()]))
         }
     }
 
@@ -654,4 +655,9 @@ extension RLScene {
         }
         endCast(after: charge + 0.25)
     }
+}
+
+
+extension SKAction {
+    func withTiming(_ mode: SKActionTimingMode) -> SKAction { timingMode = mode; return self }
 }
