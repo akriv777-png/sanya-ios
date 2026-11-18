@@ -311,24 +311,37 @@ private struct RLWantedCard: View {
 
 private struct RLToastView: View {
     let toast: RLToast
-    @State private var shown = 0
+    @State private var reveal: CGFloat = 0
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 6) {
-                Circle().fill(Color(red: 0.2, green: 0.9, blue: 1)).frame(width: 6, height: 6).shadow(color: .cyan, radius: 4)
-                Text(toast.who).font(.custom("Inter-SemiBold", size: 10)).tracking(2).foregroundStyle(Color(red: 0.2, green: 0.9, blue: 1))
+        let text = toast.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !text.isEmpty {
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Circle().fill(Color(red: 0.2, green: 0.9, blue: 1)).frame(width: 6, height: 6).shadow(color: .cyan, radius: 4)
+                    Text(toast.who).font(.custom("Inter-SemiBold", size: 10)).tracking(2).foregroundStyle(Color(red: 0.2, green: 0.9, blue: 1))
+                }
+                // full text is always laid out; a sweeping mask reveals it (no half-typed words if a frame is caught early)
+                Text(text).font(rlFont(12)).foregroundStyle(.white.opacity(0.92))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .mask(
+                        LinearGradient(stops: [.init(color: .white, location: 0),
+                                               .init(color: .white, location: max(0, reveal * 1.3 - 0.3)),
+                                               .init(color: .white.opacity(0.25), location: min(1, reveal * 1.3))],
+                                       startPoint: .leading, endPoint: .trailing)
+                    )
             }
-            Text(String(toast.text.prefix(shown))).font(rlFont(12)).foregroundStyle(.white.opacity(0.92))
-                .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 12).padding(.vertical, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .rlGlass(12, tint: .cyan)
+            .onAppear { animateIn() }
+            .onChange(of: toast.id) { _, _ in animateIn() }
+            .accessibilityIdentifier("rl_toast")
         }
-        .padding(.horizontal, 12).padding(.vertical, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .rlGlass(12, tint: .cyan)
-        .task(id: toast.id) {
-            shown = 0
-            for i in 0...toast.text.count { shown = i; try? await Task.sleep(nanoseconds: 14_000_000) }
-        }
-        .accessibilityIdentifier("rl_toast")
+    }
+    private func animateIn() {
+        if AppEnv.isUITest { reveal = 1; return }
+        reveal = 0
+        withAnimation(.easeOut(duration: 0.45)) { reveal = 1 }
     }
 }
 

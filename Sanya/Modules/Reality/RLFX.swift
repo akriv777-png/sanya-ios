@@ -291,34 +291,52 @@ extension RLScene {
     }
 
     /// Living tendrils of smoke/shadow curling out of a point.
-    func tendrils(_ color: SKColor, at p: CGPoint, count: Int, radius: CGFloat, life: TimeInterval, inward: Bool = false) {
+    /// Writhing tendrils. `glow: true` -> additive energy filaments (coloured halo + white-hot core, crackling jitter)
+    /// rendered inside the bloom layer; `glow: false` -> dark smoke tendrils (shadow magic only).
+    func tendrils(_ color: SKColor, at p: CGPoint, count: Int, radius: CGFloat, life: TimeInterval, inward: Bool = false, glow: Bool = false) {
         for i in 0..<count {
-            let n = SKShapeNode()
-            n.strokeColor = color; n.lineWidth = 3.2; n.glowWidth = 1.5; n.lineCap = .round; n.alpha = 0
-            n.zPosition = 335
+            let root = SKNode()
+            root.zPosition = 335; root.alpha = 0
+            let halo = SKShapeNode(), core = SKShapeNode()
+            for n in [halo, core] { n.lineCap = .round; n.lineJoin = .round }
+            if glow {
+                halo.strokeColor = color; halo.blendMode = .add; halo.glowWidth = 5; halo.alpha = 0.75
+                core.strokeColor = color.blended(with: .white, 0.8); core.blendMode = .add
+                root.addChild(halo); root.addChild(core)
+                fx.addChild(root)
+            } else {
+                core.strokeColor = color; core.glowWidth = 1.5
+                root.addChild(core)
+                fxPlain.addChild(root)
+            }
             let base = CGFloat(i) / CGFloat(count) * .pi * 2 + .random(in: -0.3...0.3)
             let len = radius * .random(in: 0.7...1.2)
             let phase = CGFloat.random(in: 0...6)
-            fxPlain.addChild(n)
-            n.run(.sequence([
+            root.run(.sequence([
                 .group([
-                    .fadeAlpha(to: 0.85, duration: 0.2),
-                    .customAction(withDuration: life) { node, t in
-                        guard let s = node as? SKShapeNode else { return }
+                    .fadeAlpha(to: glow ? 1 : 0.85, duration: glow ? 0.08 : 0.2),
+                    .customAction(withDuration: life) { _, t in
                         let k = t / CGFloat(life)
                         let grow = inward ? (1 - k) : min(1, k * 2.2)
                         let path = CGMutablePath()
                         let start = CGPoint(x: p.x + cos(base) * radius * 0.3, y: p.y + sin(base) * radius * 0.3 * RLScene.perspective)
                         path.move(to: start)
-                        let steps = 10
+                        let steps = glow ? 14 : 10
                         for j in 1...steps {
                             let f = CGFloat(j) / CGFloat(steps) * grow
                             let ang = base + sin(phase + t * 4 + f * 5) * 0.45 * f
                             let rr = radius * 0.3 + len * f
-                            path.addLine(to: CGPoint(x: p.x + cos(ang) * rr, y: p.y + sin(ang) * rr * RLScene.perspective + f * f * 26))
+                            let jit: CGFloat = glow ? .random(in: -3.5...3.5) * f : 0
+                            path.addLine(to: CGPoint(x: p.x + cos(ang) * rr + jit, y: p.y + sin(ang) * rr * RLScene.perspective + f * f * 26 + jit * 0.6))
                         }
-                        s.path = path
-                        s.lineWidth = 3.4 * (1 - k * 0.6)
+                        let w = (1 - k * 0.6)
+                        core.path = path
+                        core.lineWidth = (glow ? 1.6 : 3.4) * w
+                        if glow {
+                            halo.path = path
+                            halo.lineWidth = 4.5 * w
+                            root.alpha = 0.75 + 0.25 * CGFloat.random(in: 0...1)   // flicker like live current
+                        }
                     },
                 ]),
                 .fadeOut(withDuration: 0.25), .removeFromParent(),
@@ -489,7 +507,7 @@ extension RLScene {
         spellLight(c, at: CGPoint(x: p.x, y: p.y + 20), peak: 1, rise: charge, hold: 0.15, fall: 1.0, falloff: 0.9)
         inwardSparks(c, at: p, count: 34, radius: 120, duration: charge)
         floatGlyphs(c, at: p, count: 7, radius: 70, life: 1.6)
-        tendrils(SKColor(red: 0.12, green: 0.03, blue: 0.2, alpha: 1), at: p, count: 7, radius: 110, life: 1.8)
+        tendrils(SKColor(red: 0.78, green: 0.5, blue: 1, alpha: 1), at: p, count: 7, radius: 110, life: 1.8, glow: true)
         let core = glowSprite(c, size: 40, alpha: 0)
         core.position = CGPoint(x: p.x, y: p.y + 34)
         fx.addChild(core)
@@ -598,7 +616,7 @@ extension RLScene {
         runeCircle(c, at: tp, radius: 52, draw: charge, life: 2.4, spin: -2.2, intensity: 1.4)
         floatGlyphs(c, at: tp, count: 5, radius: 40, life: 1.4)
         spellLight(c, at: CGPoint(x: tp.x, y: tp.y + 20), peak: 0.9, rise: charge, hold: 0.6, fall: 1.0, falloff: 1.2, follow: target)
-        tendrils(SKColor(red: 0.25, green: 0.01, blue: 0.04, alpha: 1), at: tp, count: 6, radius: 70, life: 1.6)
+        tendrils(SKColor(red: 1, green: 0.25, blue: 0.35, alpha: 1), at: tp, count: 6, radius: 70, life: 1.6, glow: true)
         run(.wait(forDuration: charge)) { [weak self] in
             guard let self else { return }
             self.hitStop(0.05)
