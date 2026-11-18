@@ -615,8 +615,9 @@ final class RLDialogue: ObservableObject {
             return
         }
         if let d = def {
-            let pool = mem.met && mem.rel > 10 ? (d.fallback["greet"] ?? []) : (d.fallback["greet"] ?? [])
-            if mem.log.isEmpty || lines.isEmpty { lines.append(Line(fromPlayer: false, text: pool.randomElement() ?? "…")) }
+            let said = Set(mem.log.filter { !$0.fromPlayer }.suffix(4).map(\.text))
+            let pool = (d.fallback["greet"] ?? []).filter { !said.contains($0) }
+            if mem.log.isEmpty || lines.isEmpty { lines.append(Line(fromPlayer: false, text: pool.randomElement() ?? d.fallback["greet"]?.first ?? "…")) }
         }
     }
 
@@ -733,15 +734,43 @@ final class RLDialogue: ObservableObject {
         game.state.npcs[id] = m
     }
 
+    /// Offline reply: topic-matched, never repeats what this NPC said recently, and admits the NPC is distracted
+    /// (the AI channel is down) on the first offline answer of a conversation.
     private func fallback(_ id: String, _ text: String) -> String {
         guard let game else { return "…" }
         if id == "computer" { return computerFallback(text) }
         guard let d = def else { return "…" }
-        let intent = RLIntent.of(text)
-        if intent == "flirt" { game.adjustRel(id, id == "alex" ? 2 : 0.5) }
-        if intent == "greet" { game.adjustRel(id, 0.5) }
-        let pool = d.fallback[intent] ?? d.fallback["generic"] ?? ["…"]
-        return pool.randomElement() ?? "…"
+        let intents = RLIntent.all(text)
+        if intents.contains("flirt") { game.adjustRel(id, id == "alex" ? 2 : 0.5) }
+        if intents.contains("greet") { game.adjustRel(id, 0.5) }
+        let recent = Set(lines.filter { !$0.fromPlayer }.suffix(6).map(\.text) + game.state.mem(id).log.filter { !$0.fromPlayer }.suffix(6).map(\.text))
+        func pick(_ key: String) -> String? {
+            let chain: [String]
+            switch key {
+            case "drone", "district": chain = [key, "rumor", "generic"]
+            case "about": chain = [key, "generic"]
+            default: chain = [key, "generic"]
+            }
+            for k in chain {
+                guard let pool = d.fallback[k], !pool.isEmpty else { continue }
+                let fresh = pool.filter { line in !recent.contains { $0.hasSuffix(line) } }
+                if let l = fresh.randomElement() { return l }
+            }
+            return nil
+        }
+        let topic = intents.first { $0 != "greet" }
+        var parts: [String] = []
+        let alreadyOffline = lines.contains { $0.offline }
+        if !alreadyOffline, let dist = d.fallback["distracted"]?.randomElement() { parts.append(dist) }
+        if let topic {
+            if intents.contains("greet"), let ack = d.fallback["greet_ack"]?.randomElement() { parts.append(ack) }
+            parts.append(pick(topic) ?? pick("generic") ?? "…")
+        } else if intents.contains("greet") {
+            parts.append(pick("greet") ?? pick("generic") ?? "…")
+        } else {
+            parts.append(pick("generic") ?? "…")
+        }
+        return parts.joined(separator: " ")
     }
 
     private func computerFallback(_ text: String) -> String {
