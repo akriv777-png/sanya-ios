@@ -447,7 +447,7 @@ final class RLScene: SKScene {
     func makeRain(width: CGFloat, height: CGFloat, rate: CGFloat, color: SKColor, add: Bool) -> SKEmitterNode {
         let e = SKEmitterNode()
         e.particleTexture = RLTex.get("fx_rain", nearest: false)
-        e.particleBirthRate = rate
+        e.particleBirthRate = AppEnv.isUITest ? rate * 0.5 : rate
         e.particleLifetime = 0.75
         e.particlePositionRange = CGVector(dx: width, dy: 10)
         e.emissionAngle = -.pi / 2 - 0.12
@@ -561,7 +561,7 @@ final class RLScene: SKScene {
 
     override func update(_ currentTime: TimeInterval) {
         guard let game, player != nil else { lastTime = currentTime; return }
-        let rdt = lastTime == 0 ? 1.0 / 60 : min(1.0 / 20, currentTime - lastTime)
+        let rdt = lastTime == 0 ? 1.0 / 60 : min(AppEnv.isUITest ? 0.1 : 1.0 / 20, currentTime - lastTime)
         lastTime = currentTime
         clock += rdt
         let stopped = clock < hitStopUntil

@@ -79,7 +79,7 @@ struct RLGameUI: View {
 
     var body: some View {
         ZStack {
-            SpriteView(scene: scene, preferredFramesPerSecond: 60, options: [.ignoresSiblingOrder, .shouldCullNonVisibleNodes])
+            SpriteView(scene: scene, preferredFramesPerSecond: AppEnv.isUITest ? 12 : 60, options: [.ignoresSiblingOrder, .shouldCullNonVisibleNodes])
                 .ignoresSafeArea()
                 .accessibilityIdentifier("rl_scene")
 
