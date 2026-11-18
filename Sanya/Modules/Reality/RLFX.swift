@@ -164,9 +164,29 @@ extension RLScene {
         s.setValue(SKAttributeValue(float: intensity), forAttribute: "a_int")
         s.setValue(SKAttributeValue(vectorFloat4: RLShaders.col(color)), forAttribute: "a_col")
         root.addChild(s)
-        let halo = glowSprite(color, size: radius * 2.6, alpha: 0)
+        // soft echo of the runes: same shader, slightly larger, dimmer -> wide neon spill around the lines
+        let echo = SKSpriteNode(texture: s.texture)
+        echo.size = CGSize(width: radius * 2.12, height: radius * 2.12)
+        echo.shader = RLShaders.rune
+        echo.blendMode = .add
+        echo.alpha = 0.55
+        echo.setValue(SKAttributeValue(float: 0), forAttribute: "a_prog")
+        echo.setValue(SKAttributeValue(float: intensity * 0.7), forAttribute: "a_int")
+        echo.setValue(SKAttributeValue(vectorFloat4: RLShaders.col(color.blended(with: .white, 0.15))), forAttribute: "a_col")
+        root.addChild(echo)
+        echo.run(.customAction(withDuration: draw * 1.1) { n, t in
+            let k = Float(t / CGFloat(max(draw * 1.1, 0.001)))
+            (n as? SKSpriteNode)?.setValue(SKAttributeValue(float: 1 - (1 - k) * (1 - k)), forAttribute: "a_prog")
+        })
+        echo.run(.repeatForever(.rotate(byAngle: -spin * 0.6, duration: 1)))
+        let halo = glowSprite(color, size: radius * 2.9, alpha: 0)
         root.addChild(halo)
-        halo.run(.sequence([.fadeAlpha(to: 0.45, duration: draw), .wait(forDuration: max(0, life - draw - 0.6)), .fadeOut(withDuration: 0.6)]))
+        halo.run(.sequence([.fadeAlpha(to: 0.7, duration: draw), .wait(forDuration: max(0, life - draw - 0.6)), .fadeOut(withDuration: 0.6)]))
+        let core = glowSprite(color.blended(with: .white, 0.4), size: radius * 1.1, alpha: 0)
+        root.addChild(core)
+        core.run(.sequence([.fadeAlpha(to: 0.5, duration: draw * 0.8),
+                            .repeat(.sequence([.fadeAlpha(to: 0.3, duration: 0.35), .fadeAlpha(to: 0.55, duration: 0.35)]), count: max(1, Int(life / 0.7))),
+                            .fadeOut(withDuration: 0.4)]))
         s.run(.customAction(withDuration: draw) { n, t in
             let k = Float(t / CGFloat(max(draw, 0.001)))
             (n as? SKSpriteNode)?.setValue(SKAttributeValue(float: 1 - (1 - k) * (1 - k)), forAttribute: "a_prog")

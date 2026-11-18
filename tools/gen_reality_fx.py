@@ -114,11 +114,11 @@ def sheet(name, p):
     out.save('ch_' + name)
 
 S = hexc('e3bfa3'); PALE = hexc('eedad0'); TAN = hexc('b98a68')
-sheet('vex', dict(skin=S, hair=hexc('16131c'), style='messy', streak=hexc('b06bff'), top=hexc('17171f'), top2=hexc('1f2029'), trim=hexc('2ef2ff'), pants=hexc('22242e'), shoes=hexc('cfd2dc'), eye=hexc('2ef2ff'), coat=2))
-sheet('alex', dict(skin=PALE, hair=hexc('c4c9d4'), style='spiky', top=hexc('1c1b22'), top2=hexc('26252e'), pants=hexc('16161c'), shoes=hexc('34343e'), eye=hexc('6fe6ff'), bandage=True, earring=True, pierce=True, coat=4))
-sheet('lin', dict(skin=TAN, hair=hexc('a4a4ae'), style='bun', top=hexc('7a2433'), top2=hexc('7a2433'), apron=hexc('3d2350'), pants=hexc('24202c'), shoes=hexc('121218'), eye=hexc('2a1e18'), cyberarm=hexc('7d8494')))
-for i, (coat, hood) in enumerate([(hexc('22262e'), hexc('1a1c22')), (hexc('2a1f2e'), hexc('201822')), (hexc('1e2a28'), hexc('18201e'))]):
-    sheet(f'walker{i}', dict(skin=S if i != 1 else TAN, hair=hood, style='hood', top=coat, top2=shade(coat, 0.85), pants=hexc('15151a'), shoes=hexc('0e0e12'), eye=hexc('6a6a80'), coat=4, mask=hexc('0c0c10') if i == 2 else None))
+# superseded by gen_reality_chars.py: sheet('vex', dict(skin=S, hair=hexc('16131c'), style='messy', streak=hexc('b06bff'), top=hexc('17171f'), top2=hexc('1f2029'), trim=hexc('2ef2ff'), pants=hexc('22242e'), shoes=hexc('cfd2dc'), eye=hexc('2ef2ff'), coat=2))
+# superseded by gen_reality_chars.py: sheet('alex', dict(skin=PALE, hair=hexc('c4c9d4'), style='spiky', top=hexc('1c1b22'), top2=hexc('26252e'), pants=hexc('16161c'), shoes=hexc('34343e'), eye=hexc('6fe6ff'), bandage=True, earring=True, pierce=True, coat=4))
+# superseded by gen_reality_chars.py: sheet('lin', dict(skin=TAN, hair=hexc('a4a4ae'), style='bun', top=hexc('7a2433'), top2=hexc('7a2433'), apron=hexc('3d2350'), pants=hexc('24202c'), shoes=hexc('121218'), eye=hexc('2a1e18'), cyberarm=hexc('7d8494')))
+# superseded by gen_reality_chars.py: for i, (coat, hood) in enumerate([(hexc('22262e'), hexc('1a1c22')), (hexc('2a1f2e'), hexc('201822')), (hexc('1e2a28'), hexc('18201e'))]):
+# superseded by gen_reality_chars.py:     sheet(f'walker{i}', dict(skin=S if i != 1 else TAN, hair=hood, style='hood', top=coat, top2=shade(coat, 0.85), pants=hexc('15151a'), shoes=hexc('0e0e12'), eye=hexc('6a6a80'), coat=4, mask=hexc('0c0c10') if i == 2 else None))
 
 def umbrella(name, col):
     c = C(34, 20)
@@ -134,7 +134,7 @@ def umbrella(name, col):
         if 0 <= y < 20: c.px(x, y, shade(col, 1.8))
     c.rect(16, 0, 2, 2, hexc('c8c8d0'))
     c.outline((6, 6, 12, 200)); c.save(name)
-umbrella('umb_magenta', hexc('b02a82')); umbrella('umb_teal', hexc('1f8a8f')); umbrella('umb_dark', hexc('2a2a38'))
+# superseded by gen_reality_chars.py: umbrella('umb_magenta', hexc('b02a82')); umbrella('umb_teal', hexc('1f8a8f')); umbrella('umb_dark', hexc('2a2a38'))
 
 # drone: 2 frames
 out = C(56 * 2, 30)

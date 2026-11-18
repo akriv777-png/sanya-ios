@@ -15,7 +15,7 @@ enum RLTex {
         return t
     }
     private static var sheets: [String: [[SKTexture]]] = [:]
-    /// Character sheet: 4 cols × 5 rows of 24×36 (rows: down, up, left, right, cast).
+    /// Character sheet: 4 cols × 5 rows of 32×48 (rows: down, up, left, right, cast).
     static func sheet(_ name: String) -> [[SKTexture]] {
         if let s = sheets[name] { return s }
         let base = get(name)
@@ -62,17 +62,17 @@ final class RLActor: SKNode {
     var bubble: SKNode?
     let px: CGFloat
 
-    init(id: String, sheet: String, scale: CGFloat = 1.4) {
+    init(id: String, sheet: String, scale: CGFloat = 1.15) {
         self.id = id
         self.frames = RLTex.sheet(sheet)
         self.px = scale
         super.init()
-        shadow.setScale(scale * 0.9)
+        shadow.setScale(scale * 1.15)
         shadow.alpha = 0.8
         shadow.zPosition = -0.5
         addChild(shadow)
         body.texture = frames[0][0]
-        body.size = CGSize(width: 24 * scale, height: 36 * scale)
+        body.size = CGSize(width: 32 * scale, height: 48 * scale)
         body.anchorPoint = CGPoint(x: 0.5, y: 0.04)
         body.lightingBitMask = 1
         addChild(body)
@@ -98,7 +98,7 @@ final class RLActor: SKNode {
             body.yScale = 1 + sin(animT * 2.2) * 0.012
         }
         zPosition = 100 + (800 - position.y) * 0.1
-        if let u = umbrella { u.position.y = body.size.height * 0.98 + (moving ? abs(sin(animT * 8 * .pi / 2)) * 1.5 : 0) }
+        if let u = umbrella { u.position.y = body.size.height * 0.74 + (moving ? abs(sin(animT * 8 * .pi / 2)) * 1.2 : 0); u.position.x = dir == 2 ? -1.5 : dir == 3 ? 1.5 : 0 }
     }
 
     func say(_ text: String, color: SKColor, duration: TimeInterval = 3.6) {
@@ -343,7 +343,10 @@ final class RLScene: SKScene {
             node.blendMode = .add
             node.shouldEnableEffects = false
             if let bloom = CIFilter(name: "CIBloom") {
-                bloom.setValue(10, forKey: kCIInputRadiusKey); bloom.setValue(1.1, forKey: kCIInputIntensityKey)
+                // ground runes get a wider, hotter bloom (Егор: push the rune circle glow)
+                let ground = node === fxGround
+                bloom.setValue(ground ? 20 : 12, forKey: kCIInputRadiusKey)
+                bloom.setValue(ground ? 1.9 : 1.3, forKey: kCIInputIntensityKey)
                 node.filter = bloom
             }
             world.addChild(node)
@@ -360,7 +363,7 @@ final class RLScene: SKScene {
         let eye = SKSpriteNode(texture: RLTex.get("g_soft", nearest: false))
         eye.size = CGSize(width: 26, height: 26); eye.color = SKColor(red: 0.2, green: 0.95, blue: 1, alpha: 1)
         eye.colorBlendFactor = 1; eye.blendMode = .add; eye.alpha = 0.35
-        eye.position = CGPoint(x: 0, y: 40); eye.name = "eye"
+        eye.position = CGPoint(x: 0, y: 38); eye.name = "eye"
         player.addChild(eye)
 
         // NPCs
@@ -385,6 +388,32 @@ final class RLScene: SKScene {
         let root = SKNode()
         root.position = s.at
         root.zPosition = 60
+        if let name = s.sprite, let img = UIImage(named: name) {
+            let tex = SKTexture(image: img)
+            let sz = CGSize(width: tex.size().width / 2, height: tex.size().height / 2)
+            let halo = SKSpriteNode(texture: RLTex.get("g_soft", nearest: false))
+            halo.size = CGSize(width: sz.width * 1.9, height: sz.height * 1.7)
+            halo.color = s.color; halo.colorBlendFactor = 1; halo.blendMode = .add; halo.alpha = 0.42
+            root.addChild(halo)
+            let spr = SKSpriteNode(texture: tex, size: sz)
+            spr.blendMode = s.plate ? .alpha : .add
+            root.addChild(spr)
+            if s.plate {
+                // second additive pass so the tube glow still blooms over the plate
+                let glow = SKSpriteNode(texture: tex, size: sz)
+                glow.blendMode = .add; glow.alpha = 0.55
+                root.addChild(glow)
+            }
+            halo.run(.repeatForever(.sequence([.fadeAlpha(to: 0.3, duration: 1.6), .fadeAlpha(to: 0.48, duration: 1.4)])))
+            if s.flicker {
+                root.run(.repeatForever(.sequence([
+                    .wait(forDuration: .random(in: 3...7)),
+                    .fadeAlpha(to: 0.2, duration: 0.03), .fadeAlpha(to: 1, duration: 0.05),
+                    .fadeAlpha(to: 0.35, duration: 0.04), .fadeAlpha(to: 1, duration: 0.09),
+                ])))
+            }
+            return root
+        }
         let halo = SKSpriteNode(texture: RLTex.get("g_soft", nearest: false))
         halo.size = CGSize(width: s.size * CGFloat(s.text.count) * 1.1 + 60, height: s.size * 3.2)
         halo.color = s.color; halo.colorBlendFactor = 1; halo.blendMode = .add; halo.alpha = 0.35
@@ -486,8 +515,8 @@ final class RLScene: SKScene {
         }
         if Int.random(in: 0..<5) != 0 {
             let u = SKSpriteNode(texture: RLTex.get(["umb_magenta", "umb_teal", "umb_dark"].randomElement()!))
-            u.size = CGSize(width: 34 * 1.45, height: 20 * 1.45)
-            u.anchorPoint = CGPoint(x: 0.5, y: 0.3)
+            u.size = CGSize(width: 48 * 1.15, height: 34 * 1.15)
+            u.anchorPoint = CGPoint(x: 0.5, y: 0.5)
             u.zPosition = 1; u.lightingBitMask = 1
             a.addChild(u); a.umbrella = u
         }

@@ -9,7 +9,7 @@ enum RLInteractKind: String { case sleep, cook, terminal, couch, shift, jukebox,
 struct RLInteract { let at: CGPoint; let kind: RLInteractKind; let label: String; var radius: CGFloat = 60 }
 struct RLLightDef { let at: CGPoint; let color: SKColor; let falloff: CGFloat; var flicker = false }
 struct RLPuddle { let at: CGPoint; let size: CGSize }
-struct RLSign { let text: String; let at: CGPoint; let color: SKColor; let size: CGFloat; var flicker = false }
+struct RLSign { let text: String; let at: CGPoint; let color: SKColor; let size: CGFloat; var flicker = false; var sprite: String? = nil; var plate = false }
 
 struct RLZoneMap {
     let zone: RLZone
@@ -144,10 +144,10 @@ enum RLWorld {
             RLPuddle(at: I(785, 660), size: CGSize(width: 70, height: 80)),
         ]
         m.signs = [
-            RLSign(text: "ЛАПША", at: I(258, 300), color: SKColor(red: 1, green: 0.55, blue: 0.85, alpha: 1), size: 24, flicker: true),
-            RLSign(text: "ОРАКУЛ", at: I(437, 162), color: SKColor(red: 1, green: 0.3, blue: 0.4, alpha: 1), size: 13),
-            RLSign(text: "ВЫСОТА", at: I(1062, 258), color: green, size: 19),
-            RLSign(text: "БАР", at: I(1062, 236), color: green, size: 12, flicker: true),
+            RLSign(text: "ЛАПША", at: I(221, 246), color: SKColor(red: 1, green: 0.3, blue: 0.8, alpha: 1), size: 24, flicker: true, sprite: "sign_lapsha"),
+            RLSign(text: "ОРАКУЛ", at: I(433, 137), color: SKColor(red: 1, green: 0.25, blue: 0.4, alpha: 1), size: 13, sprite: "sign_oracle"),
+            RLSign(text: "БАР", at: I(1022, 255), color: green, size: 12, flicker: true, sprite: "sign_bar"),
+            RLSign(text: "ВЫСОТА", at: I(1181, 338), color: green, size: 19, sprite: "sign_vysota", plate: true),
         ]
         m.steam = [I(370, 272), I(330, 300)]
         m.walkerLanes = [
