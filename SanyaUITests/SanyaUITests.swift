@@ -195,7 +195,6 @@ final class SanyaUITests: XCTestCase {
         app.terminate()
         app.launchArguments = ["-uitest", "-rlDemo", "-rlNearLin", "-UITestOpenReality", "-rlAutoTour"]
         app.launch()
-        XCUIDevice.shared.orientation = .landscapeRight
-        pause(66)
+        pause(100)
     }
 }

@@ -201,6 +201,8 @@ final class RLScene: SKScene {
     override func didMove(to view: SKView) {
         backgroundColor = SKColor(red: 0.02, green: 0.02, blue: 0.05, alpha: 1)
         scaleMode = .resizeFill
+        // CI simulators render Metal in software: draw at 1× there so lighting/bloom keep up
+        if AppEnv.isUITest { view.contentScaleFactor = 1 }
         if world.parent == nil { addChild(world) }
         if cam.parent == nil { addChild(cam); camera = cam; setupCameraOverlays() }
         if !built { build(); built = true }

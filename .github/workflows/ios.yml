@@ -35,7 +35,7 @@ jobs:
           mkdir -p out/simshots
           for T in testTour4Reality testTour1; do
             # simctl screenshots in parallel: independent of XCTest idle detection
-            ( IV=8; [ "$T" = testTour4Reality ] && IV=2; i=0; while [ $i -lt 90 ]; do sleep $IV; i=$((i+1)); xcrun simctl io "$UDID" screenshot --type=png "out/simshots/${T}_$(printf %02d $i).png" >/dev/null 2>&1 || true; done ) &
+            ( IV=8; [ "$T" = testTour4Reality ] && IV=2; i=0; while [ $i -lt 120 ]; do sleep $IV; i=$((i+1)); xcrun simctl io "$UDID" screenshot --type=png "out/simshots/${T}_$(printf %02d $i).png" >/dev/null 2>&1 || true; done ) &
             SNAP=$!
             REC=""
             if [ "$T" = testTour4Reality ]; then
