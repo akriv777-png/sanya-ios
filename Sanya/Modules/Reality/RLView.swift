@@ -273,7 +273,7 @@ private struct RLWantedCard: View {
         }
         .padding(.horizontal, 10).padding(.vertical, 7)
         .rlGlass(12, tint: .red)
-        .onAppear { withAnimation(.easeInOut(duration: 0.6).repeatForever()) { pulse = true } }
+        .onAppear { guard !AppEnv.isUITest else { pulse = true; return }; withAnimation(.easeInOut(duration: 0.6).repeatForever()) { pulse = true } }
         .accessibilityIdentifier("rl_wanted")
     }
 }
@@ -386,7 +386,7 @@ private struct RLSpellPad: View {
     @ObservedObject var game: RLGame
     let scene: RLScene
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 0.1)) { _ in
+        TimelineView(.periodic(from: .now, by: AppEnv.isUITest ? 1.0 : 0.1)) { _ in
             VStack(spacing: 8) {
                 HStack(spacing: 10) { btn(.glyph); btn(.hex) }
                 HStack(spacing: 10) { btn(.shadow); btn(.sigil) }
@@ -724,7 +724,7 @@ private struct RLIntro: View {
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.9)) { appear = true }
-            withAnimation(.easeInOut(duration: 0.12).repeatForever(autoreverses: true)) { glitch = true }
+            if !AppEnv.isUITest { withAnimation(.easeInOut(duration: 0.12).repeatForever(autoreverses: true)) { glitch = true } }
         }
         .accessibilityIdentifier("rl_intro")
     }

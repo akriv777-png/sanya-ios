@@ -15,7 +15,7 @@ enum RLTex {
         return t
     }
     private static var sheets: [String: [[SKTexture]]] = [:]
-    /// Character sheet: 4 cols × 5 rows of 32×48 (rows: down, up, left, right, cast).
+    /// Character sheet: 4 cols × 5 rows of 48×72 (sliced from generated pixel-art sheets) (rows: down, up, left, right, cast).
     static func sheet(_ name: String) -> [[SKTexture]] {
         if let s = sheets[name] { return s }
         let base = get(name)
@@ -62,17 +62,17 @@ final class RLActor: SKNode {
     var bubble: SKNode?
     let px: CGFloat
 
-    init(id: String, sheet: String, scale: CGFloat = 1.15) {
+    init(id: String, sheet: String, scale: CGFloat = 0.85) {
         self.id = id
         self.frames = RLTex.sheet(sheet)
         self.px = scale
         super.init()
-        shadow.setScale(scale * 1.15)
+        shadow.setScale(scale * 1.5)
         shadow.alpha = 0.8
         shadow.zPosition = -0.5
         addChild(shadow)
         body.texture = frames[0][0]
-        body.size = CGSize(width: 32 * scale, height: 48 * scale)
+        body.size = CGSize(width: 48 * scale, height: 72 * scale)
         body.anchorPoint = CGPoint(x: 0.5, y: 0.04)
         body.lightingBitMask = 1
         addChild(body)
@@ -98,7 +98,7 @@ final class RLActor: SKNode {
             body.yScale = 1 + sin(animT * 2.2) * 0.012
         }
         zPosition = 100 + (800 - position.y) * 0.1
-        if let u = umbrella { u.position.y = body.size.height * 0.74 + (moving ? abs(sin(animT * 8 * .pi / 2)) * 1.2 : 0); u.position.x = dir == 2 ? -1.5 : dir == 3 ? 1.5 : 0 }
+        if let u = umbrella { u.position.y = body.size.height * 0.84 + (moving ? abs(sin(animT * 8 * .pi / 2)) * 1.2 : 0); u.position.x = dir == 2 ? -1.5 : dir == 3 ? 1.5 : 0 }
     }
 
     func say(_ text: String, color: SKColor, duration: TimeInterval = 3.6) {
@@ -363,7 +363,7 @@ final class RLScene: SKScene {
         let eye = SKSpriteNode(texture: RLTex.get("g_soft", nearest: false))
         eye.size = CGSize(width: 26, height: 26); eye.color = SKColor(red: 0.2, green: 0.95, blue: 1, alpha: 1)
         eye.colorBlendFactor = 1; eye.blendMode = .add; eye.alpha = 0.35
-        eye.position = CGPoint(x: 0, y: 38); eye.name = "eye"
+        eye.position = CGPoint(x: 0, y: 53); eye.name = "eye"
         player.addChild(eye)
 
         // NPCs
