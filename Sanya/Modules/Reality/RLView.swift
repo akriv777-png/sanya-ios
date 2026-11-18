@@ -27,6 +27,27 @@ final class RLSession: ObservableObject {
     }
 }
 
+/// Launch-arg driven entry for CI captures: `-rlSkipIntro` / `-UITestOpenReality` start a game at once,
+/// `-rlAutoTour` additionally plays a fixed script (spells, Лин dialog) so simctl can screenshot it.
+enum RLAutoTour {
+    static var args: [String] { ProcessInfo.processInfo.arguments }
+    static func run(_ session: RLSession) {
+        let game = session.game, scene = session.scene
+        guard args.contains("-rlSkipIntro") || args.contains("-UITestOpenReality") || args.contains("-rlAutoTour") else { return }
+        func at(_ t: Double, _ f: @escaping () -> Void) { DispatchQueue.main.asyncAfter(deadline: .now() + t, execute: f) }
+        at(0.8) { if !game.started { game.begin(fresh: true) } }
+        guard args.contains("-rlAutoTour") else { return }
+        at(9) { game.state.mana = 100; scene.cast(.glyph) }
+        at(16) { game.state.mana = 100; scene.cast(.hex) }
+        at(23) { game.state.mana = 100; scene.cast(.sigil) }
+        at(31) { game.openDialog("lin") }
+        at(34) { game.dialogue.send("Привет, Мама Лин! Что слышно про дроны?") }
+        at(46) { game.closePanel() }
+        at(49) { game.state.mana = 100; scene.cast(.shadow) }
+        at(53) { game.state.mana = 100; scene.cast(.glyph) }
+    }
+}
+
 struct RealityView: View {
     @StateObject private var session = RLSession()
     var body: some View {
@@ -34,7 +55,10 @@ struct RealityView: View {
             .toolbar(.hidden, for: .navigationBar)
             .statusBarHidden(true)
             .persistentSystemOverlays(.hidden)
-            .onAppear { OrientationLock.set(.landscape, prefer: .landscapeRight) }
+            .onAppear {
+                OrientationLock.set(.landscape, prefer: .landscapeRight)
+                RLAutoTour.run(session)
+            }
             .onDisappear {
                 session.game.save(); RLAudio.shared.stop()
                 OrientationLock.set(.portrait, prefer: .portrait)

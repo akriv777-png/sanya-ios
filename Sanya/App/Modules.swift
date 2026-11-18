@@ -53,6 +53,10 @@ enum Modules {
 final class Router: ObservableObject {
     static let shared = Router()
     @Published var path: [ModuleID] = []
+    init() {
+        let a = ProcessInfo.processInfo.arguments
+        if a.contains("-UITestOpenReality") || a.contains("-rlAutoTour") { path = [.reality] }
+    }
     func go(_ m: ModuleID) { path = [m] }
     func open(_ url: URL) {
         if AIClient.configure(from: url) { Haptics.success(); return }
