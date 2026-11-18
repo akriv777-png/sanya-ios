@@ -373,6 +373,7 @@ final class RLScene: SKScene {
             let a = RLActor(id: d.id, sheet: d.sprite)
             a.position = spot; a.spotName = slot.spot; a.walkSpeed = 55
             a.dir = d.id == "lin" ? 2 : 0
+            if d.id == "lin" { a.body.size = CGSize(width: a.body.size.width * 0.96, height: a.body.size.height * 0.84) }  // short, sturdy
             world.addChild(a); npcs[d.id] = a
         }
         // pedestrians with umbrellas

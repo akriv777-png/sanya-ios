@@ -96,6 +96,7 @@ struct RLGameUI: View {
 
             if !game.started { RLIntro(game: game).transition(.opacity) }
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("reality_screen")
     }
 
@@ -236,6 +237,7 @@ private struct RLStatusCard: View {
         .frame(width: 170, alignment: .leading)
         .rlGlass(14)
         .animation(.easeOut(duration: 0.3), value: hud)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("rl_hud")
     }
     private func bar(_ t: String, _ sym: String, _ c: Color, _ v: Double) -> some View {
@@ -461,6 +463,7 @@ struct RLDialogPanel: View {
             .rlGlass(18, tint: accent)
             .padding(.horizontal, 16).padding(.bottom, 8)
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("rl_dialog")
     }
 
@@ -627,6 +630,7 @@ private struct RLInventory: View {
                 .accessibilityIdentifier("rl_item_\(k)")
             }
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("rl_inventory_panel")
     }
 }
@@ -726,6 +730,7 @@ private struct RLIntro: View {
             withAnimation(.easeOut(duration: 0.9)) { appear = true }
             if !AppEnv.isUITest { withAnimation(.easeInOut(duration: 0.12).repeatForever(autoreverses: true)) { glitch = true } }
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("rl_intro")
     }
     private var title: some View { Text("РЕАЛЬНОСТЬ").font(.custom("CormorantGaramond-SemiBold", size: 58)).tracking(6) }
